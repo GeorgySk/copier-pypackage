@@ -72,19 +72,6 @@ def project_info(result):
     return project_path, project_slug, project_dir
 
 
-def test_bake_with_defaults(cookies):
-    with bake_in_temp_dir(cookies) as result:
-        assert result.project.isdir()
-        assert result.exit_code == 0
-        assert result.exception is None
-
-        found_toplevel_files = [f.basename for f in result.project.listdir()]
-        assert 'setup.py' in found_toplevel_files
-        assert 'python_boilerplate' in found_toplevel_files
-        assert 'tox.ini' in found_toplevel_files
-        assert 'tests' in found_toplevel_files
-
-
 def test_bake_and_run_tests(cookies):
     with bake_in_temp_dir(cookies) as result:
         assert result.project.isdir()
@@ -112,40 +99,6 @@ def test_bake_with_apostrophe_and_run_tests(cookies):
         run_inside_dir('python setup.py test', str(result.project)) == 0
 
 
-# def test_bake_and_run_travis_pypi_setup(cookies):
-#     # given:
-#     with bake_in_temp_dir(cookies) as result:
-#         project_path = str(result.project)
-#
-#         # when:
-#         travis_setup_cmd = ('python travis_pypi_setup.py'
-#                             ' --repo audreyr/cookiecutter-pypackage'
-#                             ' --password invalidpass')
-#         run_inside_dir(travis_setup_cmd, project_path)
-#         # then:
-#         result_travis_config = yaml.load(
-#             result.project.join(".travis.yml").open()
-#         )
-#         min_size_of_encrypted_password = 50
-#         assert len(
-#             result_travis_config["deploy"]["password"]["secure"]
-#         ) > min_size_of_encrypted_password
-
-
-def test_bake_without_travis_pypi_setup(cookies):
-    with bake_in_temp_dir(
-        cookies,
-        extra_context={'use_pypi_deployment_with_travis': 'n'}
-    ) as result:
-        result_travis_config = yaml.load(
-            result.project.join(".travis.yml").open(),
-            Loader=yaml.FullLoader
-        )
-        assert "deploy" not in result_travis_config
-        assert "python" == result_travis_config["language"]
-        # found_toplevel_files = [f.basename for f in result.project.listdir()]
-
-
 def test_bake_without_author_file(cookies):
     with bake_in_temp_dir(
         cookies,
@@ -167,18 +120,6 @@ def test_bake_without_author_file(cookies):
             assert 'AUTHORS.rst' not in manifest_file.read()
 
 
-def test_make_help(cookies):
-    with bake_in_temp_dir(cookies) as result:
-        # The supplied Makefile does not support win32
-        if sys.platform != "win32":
-            output = check_output_inside_dir(
-                'make help',
-                str(result.project)
-            )
-            assert b"check code coverage quickly with the default Python" in \
-                output
-
-
 def test_bake_selecting_license(cookies):
     license_strings = {
         'MIT license': 'MIT ',
@@ -196,17 +137,6 @@ def test_bake_selecting_license(cookies):
         ) as result:
             assert target_string in result.project.join('LICENSE').read()
             assert license in result.project.join('setup.py').read()
-
-
-def test_bake_not_open_source(cookies):
-    with bake_in_temp_dir(
-        cookies,
-        extra_context={'open_source_license': 'Not open source'}
-    ) as result:
-        found_toplevel_files = [f.basename for f in result.project.listdir()]
-        assert 'setup.py' in found_toplevel_files
-        assert 'LICENSE' not in found_toplevel_files
-        assert 'License' not in result.project.join('README.rst').read()
 
 
 def test_using_pytest(cookies):
@@ -233,27 +163,6 @@ def test_not_using_pytest(cookies):
         lines = test_file_path.readlines()
         assert "import unittest" in ''.join(lines)
         assert "import pytest" not in ''.join(lines)
-
-
-# def test_project_with_hyphen_in_module_name(cookies):
-#     result = cookies.bake(
-#         extra_context={'project_name': 'something-with-a-dash'}
-#     )
-#     assert result.project is not None
-#     project_path = str(result.project)
-#
-#     # when:
-#     travis_setup_cmd = ('python travis_pypi_setup.py'
-#                         ' --repo audreyr/cookiecutter-pypackage'
-#                         ' --password invalidpass')
-#     run_inside_dir(travis_setup_cmd, project_path)
-#
-#     # then:
-#     result_travis_config = yaml.load(
-#         open(os.path.join(project_path, ".travis.yml"))
-#     )
-#     assert "secure" in result_travis_config["deploy"]["password"],\
-#         "missing password config in .travis.yml"
 
 
 def test_bake_with_no_console_script(cookies):
@@ -332,16 +241,3 @@ def test_bake_with_argparse_console_script_cli(cookies):
     help_result = runner.invoke(cli.main, ['--help'])
     assert help_result.exit_code == 0
     assert 'Show this message' in help_result.output
-
-
-@pytest.mark.parametrize("use_black,expected", [("y", True), ("n", False)])
-def test_black(cookies, use_black, expected):
-    with bake_in_temp_dir(
-        cookies,
-        extra_context={'use_black': use_black}
-    ) as result:
-        assert result.project.isdir()
-        requirements_path = result.project.join('requirements_dev.txt')
-        assert ("black" in requirements_path.read()) is expected
-        makefile_path = result.project.join('Makefile')
-        assert ("black --check" in makefile_path.read()) is expected

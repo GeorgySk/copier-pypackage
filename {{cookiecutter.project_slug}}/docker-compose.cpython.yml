@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  {{cookiecutter.project_slug}}-cpython:
+    build:
+      context: .
+      args:
+        - IMAGE_NAME=${CPYTHON_IMAGE_NAME}
+        - IMAGE_VERSION=${CPYTHON_IMAGE_VERSION}
+    image: {{ cookiecutter.github_username }}/{{cookiecutter.project_slug}}-cpython:{{cookiecutter.version}}
+    volumes:
+      - ./{{cookiecutter.project_slug}}:/opt/{{cookiecutter.project_slug}}/{{cookiecutter.project_slug}}
+      - ./pytest.ini:/opt/{{cookiecutter.project_slug}}/pytest.ini
+      - ./README.md:/opt/{{cookiecutter.project_slug}}/README.md
+      - ./requirements-tests.txt:/opt/{{cookiecutter.project_slug}}/requirements-tests.txt
+      - ./requirements.txt:/opt/{{cookiecutter.project_slug}}/requirements.txt
+      - ./setup.py:/opt/{{cookiecutter.project_slug}}/setup.py
+      - ./tests:/opt/{{cookiecutter.project_slug}}/tests
+    entrypoint: pytest
