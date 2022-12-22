@@ -16,5 +16,5 @@ RUN poetry install
 
 COPY README.md .
 COPY pytest.ini .
-COPY {{ cookicutter.project_slug }} {{ cookicutter.project_slug }}
+COPY {{ cookiecutter.project_slug }} {{ cookiecutter.project_slug }}
 COPY tests tests
