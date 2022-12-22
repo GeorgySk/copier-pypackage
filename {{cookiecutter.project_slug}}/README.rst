@@ -1,4 +1,4 @@
-gon
+{{ cookiecutter.project_name }}
 ===
 
 [![](https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}/workflows/CI/badge.svg)](https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}/actions/workflows/ci.yml "Github Actions")
