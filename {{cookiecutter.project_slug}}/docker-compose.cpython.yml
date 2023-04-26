@@ -8,7 +8,7 @@ services:
         - IMAGE_NAME=${CPYTHON_IMAGE_NAME}
         - IMAGE_VERSION=${CPYTHON_IMAGE_VERSION}
         - POETRY_VERSION=${POETRY_VERSION}
-    image: {{ cookiecutter.github_username }}/{{cookiecutter.project_slug}}-cpython:{{cookiecutter.version}}
+    image: {{ cookiecutter.github_username.lower() }}/{{cookiecutter.project_slug}}-cpython:{{cookiecutter.version}}
     volumes:
       - ./{{cookiecutter.project_slug}}:/opt/{{cookiecutter.project_slug}}/{{cookiecutter.project_slug}}
       - ./pytest.ini:/opt/{{cookiecutter.project_slug}}/pytest.ini
