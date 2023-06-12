@@ -4,7 +4,7 @@ from distutils.core import setup
 setup(
     name='cookiecutter-pypackage',
     packages=[],
-    version='0.6.1',
+    version='0.7.0-alpha',
     description='Cookiecutter template for a Python package',
     author='Georgy Skorobogatov',
     license='BSD',
