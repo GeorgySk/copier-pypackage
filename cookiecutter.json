@@ -1,6 +1,6 @@
 {
   "full_name": "Georgy Skorobogatov",
-  "email": "skorobogatovgeorgy@gmail.com",
+  "email": "skorobogatovgeorgy+github@gmail.com",
   "github_username": "GeorgySk",
   "project_name": "Python Boilerplate",
   "project_slug": "{{ cookiecutter.project_name.lower().replace(' ', '_').replace('-', '_') }}",
@@ -14,5 +14,6 @@
   "command_line_interface": ["No command-line interface", "Click", "Argparse"],
   "create_author_file": "n",
   "open_source_license": ["MIT license", "BSD license", "ISC license", "Apache Software License 2.0", "GNU General Public License v3", "Not open source"],
-  "poetry_version": "1.5.1"
+  "poetry_version": "1.8.2",
+  "python_version": "3.8"
 }

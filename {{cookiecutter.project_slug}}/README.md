@@ -10,12 +10,12 @@
 Summary
 -------
 
-`{{ cookiecutter.project_short_description }}`.
+{{ cookiecutter.project_short_description }}.
 
 ---
 
-In what follows `python` is an alias for `python3.7` or `pypy3.7`
-or any later version (`python3.8`, `pypy3.8` and so on).
+In what follows `python` is an alias for `python{{ cookiecutter.python_version }}`
+or any later version.
 
 Installation
 ------------
@@ -37,17 +37,12 @@ python -m pip install --upgrade {{ cookiecutter.project_slug }}
 Download the latest version from `GitHub` repository
 ```bash
 git clone https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}.git
-cd gon
-```
-
-Install dependencies
-```bash
-python -m pip install -r requirements.txt
+cd {{ cookiecutter.project_slug }}
 ```
 
 Install
 ```bash
-python setup.py install
+poetry install
 ```
 
 Usage
@@ -63,7 +58,7 @@ Development
 #### Preparation
 
 Install
-[bump2version](https://github.com/c4urself/bump2version#installation).
+[bump-my-version](https://github.com/callowayproject/bump-my-version/tree/master?tab=readme-ov-file#installation).
 
 #### Pre-release
 
@@ -72,7 +67,7 @@ specification](http://semver.org/).
 
 Test bumping version
 ```bash
-bump2version --dry-run --verbose $CATEGORY
+bump-my-version bump --dry-run --verbose $CATEGORY
 ```
 
 where `$CATEGORY` is the target version number category name, possible
@@ -80,21 +75,21 @@ values are `patch`/`minor`/`major`.
 
 Bump version
 ```bash
-bump2version --verbose $CATEGORY
+bump-my-version bump --verbose $CATEGORY
 ```
 
-This will set version to `major.minor.patch-alpha`.
+This will set version to `major.minor.patch-alpha`. 
 
 #### Release
 
 Test bumping version
 ```bash
-bump2version --dry-run --verbose release
+bump-my-version bump --dry-run --verbose release
 ```
 
 Bump version
 ```bash
-bump2version --verbose release
+bump-my-version bump --verbose release
 ```
 
 This will set version to `major.minor.patch`.
@@ -112,40 +107,6 @@ pytest
 ```
 
 Inside `Docker` container:
-- with `CPython`
   ```bash
-  docker-compose --file docker-compose.cpython.yml up
-  ```
-- with `PyPy`
-  ```bash
-  docker-compose --file docker-compose.pypy.yml up
-  ```
-
-`Bash` script:
-- with `CPython`
-  ```bash
-  ./run-tests.sh
-  ```
-  or
-  ```bash
-  ./run-tests.sh cpython
-  ```
-
-- with `PyPy`
-  ```bash
-  ./run-tests.sh pypy
-  ```
-
-`PowerShell` script:
-- with `CPython`
-  ```powershell
-  .\run-tests.ps1
-  ```
-  or
-  ```powershell
-  .\run-tests.ps1 cpython
-  ```
-- with `PyPy`
-  ```powershell
-  .\run-tests.ps1 pypy
+  docker-compose run --entrypoint pytest {{ cookiecutter.project_slug }}
   ```
