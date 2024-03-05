@@ -8,6 +8,9 @@ serialize = [
     "{major}.{minor}.{patch}"
 ]
 
+[[tool.bumpversion.files]]
+filename = "compose.yaml"
+
 [tool.bumpversion.parts.release]
 optional_value = "beta"
 values = [
