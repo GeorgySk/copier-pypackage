@@ -9,7 +9,6 @@ WORKDIR /opt/cookiecutter-pypackage
 
 COPY pyproject.toml .
 COPY README.md .
-COPY cookiecutter-pypackage/ cookiecutter-pypackage/
 COPY tests/ tests/
 COPY hooks/ hooks/
 COPY {{cookiecutter.project_slug}}/ {{cookiecutter.project_slug}}/
