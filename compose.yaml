@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  cookiecutter-pypackage:
+    build:
+      context: .
+      args:
+        - PYTHON_IMAGE_VERSION=${PYTHON_IMAGE_VERSION}
+        - POETRY_VERSION=${POETRY_VERSION}
+        - ENVIRONMENT=${ENVIRONMENT}
+    image: georgysk/cookiecutter-pypackage:0.8.0
+    volumes:
+      - .:/opt/cookiecutter-pypackage
+    stdin_open: true
+    tty: true

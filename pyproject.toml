@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "cookiecutter-pyproject"
+version = "0.8.0"
+description = ""
+authors = ["GeorgySk <skorobogatovgeorgy+github@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+cookiecutter = "^2.6.0"
+
+[tool.poetry.group.dev.dependencies]
+bump-my-version = "^0.18.3"
+pytest = "^8.0.2"
+pytest-cov = "^4.1.0"
+hypothesis = "^6.98.17"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.coverage.run]
+source = ["hooks"]
+
+[tool.pytest.ini_options]
+addopts = "--verbose -s --hypothesis-profile=default"
