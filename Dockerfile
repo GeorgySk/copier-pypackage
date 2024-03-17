@@ -3,24 +3,24 @@ ARG PYTHON_IMAGE_VERSION
 FROM python:${PYTHON_IMAGE_VERSION}
 
 ARG POETRY_VERSION
-ARG ENVIRONMENT
+ARG DEV_IMAGE
 
 WORKDIR /opt/cookiecutter-pypackage
 
-COPY pyproject.toml .
+RUN pip install "poetry==${POETRY_VERSION}" && \
+    poetry config virtualenvs.create false
+
 COPY README.md .
 COPY tests/ tests/
-COPY hooks/ hooks/
 COPY {{cookiecutter.project_slug}}/ {{cookiecutter.project_slug}}/
+COPY pyproject.toml .
+COPY hooks/ hooks/
 
-RUN pip install --upgrade pip
-RUN if [ "${ENVIRONMENT}" = "development" ]; then \
-        pip install "poetry==${POETRY_VERSION}" && \
-        poetry config virtualenvs.create false && \
+RUN if [ "${DEV_IMAGE}" = "true" ]; then \
         poetry install; \
-    elif [ "${ENVIRONMENT}" = "production" ]; then \
-        pip install -e .; \
+    elif [ "${DEV_IMAGE}" = "false" ]; then \
+        poetry install --without dev; \
     else \
-        echo "Invalid environment specified: '${POETRY_VERSION}'"; \
+        echo "Invalid value specified for DEV_IMAGE: '${DEV_IMAGE}'"; \
         exit 1; \
     fi
