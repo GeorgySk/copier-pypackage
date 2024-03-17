@@ -36,11 +36,41 @@ Usage
     ```
 
 ### With Docker
-...
+1. Clone the current repository
+    ```shell
+    git clone https://github.com/GeorgySk/cookiecutter-pypackage.git
+    cd cookiecutter-pypackage
+    ```
+2. Build the image
+    ```shell
+    docker compose build
+    ```
+3. Check your uid and gid which we will use later
+to change ownership of the generated project
+    ```shell
+    id -u
+    id -g
+    ```
+4. Connect to terminal inside container
+    ```shell
+    docker compose run cookiecutter-pypackage bash
+    ```
+5. Generate the project
+    ```shell
+    cookicutter .
+    ```
+6. Change ownership of the project using the 
+previously obtained uid and gid
+    ```shell
+    chown -R <your_uid>:<your_gid> <newly_generated_folder_with_project> 
+    ```
+7. Exit the container
+    ```shell
+    exit
+    ```
 
 Development
 -----------
-...
 
 ### Bumping version
 
@@ -82,7 +112,3 @@ bump-my-version bump --verbose release
 ```
 
 This will set version to `major.minor.patch`.
-
-
-### Running tests
-...
