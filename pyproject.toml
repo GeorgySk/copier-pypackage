@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cookiecutter-pyproject"
-version = "0.8.0"
+version = "0.10.0"
 description = ""
 authors = ["GeorgySk <skorobogatovgeorgy+github@gmail.com>"]
 readme = "README.md"
@@ -9,11 +9,15 @@ readme = "README.md"
 python = "^3.8"
 cookiecutter = "^2.6.0"
 
+[tool.poetry.group.dev]
+optional = true
+
 [tool.poetry.group.dev.dependencies]
 bump-my-version = "^0.20.0"
 pytest = "^8.1.1"
 pytest-cov = "^5.0.0"
-hypothesis = "^6.99.13"
+# fixed for easier way to reproduce across various machines
+hypothesis = "6.99.13"
 
 [build-system]
 requires = ["poetry-core"]
