@@ -5,7 +5,7 @@ services:
       args:
         - PYTHON_IMAGE_VERSION=${PYTHON_IMAGE_VERSION}
         - POETRY_VERSION=${POETRY_VERSION}
-        - DEV_IMAGE=${DEV_IMAGE}
+        - IMAGE_TYPE=${IMAGE_TYPE}
     image: {{ cookiecutter.github_username.lower() }}/{{cookiecutter.project_slug}}:{{cookiecutter.version}}
     volumes:
       - .:/opt/{{cookiecutter.project_slug}}

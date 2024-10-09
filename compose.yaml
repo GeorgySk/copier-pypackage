@@ -5,8 +5,8 @@ services:
       args:
         - PYTHON_IMAGE_VERSION=${PYTHON_IMAGE_VERSION}
         - POETRY_VERSION=${POETRY_VERSION}
-        - DEV_IMAGE=${DEV_IMAGE}
-    image: georgysk/cookiecutter-pypackage:0.9.0
+        - IMAGE_TYPE=${IMAGE_TYPE}
+    image: georgysk/cookiecutter-pypackage:0.10.0
     volumes:
       - .:/opt/cookiecutter-pypackage
     stdin_open: true
