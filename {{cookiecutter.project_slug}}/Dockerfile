@@ -20,4 +20,4 @@ RUN poetry install
 FROM base AS dev
 RUN poetry install --with dev
 
-FROM ${TARGET}-${IMAGE_TYPE}
+FROM ${IMAGE_TYPE}
