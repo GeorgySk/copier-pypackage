@@ -1,27 +1,25 @@
-[tool.poetry]
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[project]
 name = "cookiecutter-pyproject"
 version = "0.10.0"
 description = ""
 authors = ["GeorgySk <skorobogatovgeorgy+github@gmail.com>"]
 readme = "README.md"
-
-[tool.poetry.dependencies]
-python = "^3.8"
-cookiecutter = "^2.6.0"
-
-[tool.poetry.group.dev]
-optional = true
+license-files = ["LICENSE"]
+requires-python = "^3.10"
+dependencies = [
+    "cookiecutter (>=2.6.0,<3.0.0)"
+]
 
 [tool.poetry.group.dev.dependencies]
-bump-my-version = "^0.20.0"
-pytest = "^8.1.1"
-pytest-cov = "^5.0.0"
+bump-my-version = "^1.2.1"
+pytest = "^8.4.1"
+pytest-cov = "^6.2.1"
 # fixed for easier way to reproduce across various machines
-hypothesis = "6.99.13"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+hypothesis = "^6.138.3"
 
 [tool.coverage.run]
 source = ["hooks"]
