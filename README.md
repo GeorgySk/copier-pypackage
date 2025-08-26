@@ -15,7 +15,7 @@ Compose, Poetry, bump-my-version, pytest, pytest-cov, and Hypothesis library for
 
 ---
 
-In what follows `python` is an alias for `python3.8` or any later
+In what follows `python` is an alias for `python3.10` or any later
 version.
 
 Usage
