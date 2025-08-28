@@ -1,0 +1,16 @@
+{
+  "name": "{{ cookiecutter.project_slug }}",
+  "image": "python:{{ cookiecutter.python_version }}-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {},
+    "ghcr.io/devcontainers-extra/features/poetry:2": {
+      "version": "{{ cookiecutter.poetry_version }}"
+    }
+  },
+  "workspaceFolder": "/opt/{{ cookiecutter.project_slug }}",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/opt/{{ cookiecutter.project_slug }},type=bind,consistency=cached",
+  "runArgs": ["--runtime=runc"],
+  "onCreateCommand": ". /opt/{{ cookiecutter.project_slug }}/.devcontainer/setup_user.sh",
+  "postCreateCommand": "poetry config virtualenvs.create false && poetry install --with dev --no-root",
+  "remoteUser": "${localEnv:USER}"
+}
