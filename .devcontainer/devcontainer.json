@@ -1,0 +1,16 @@
+{
+  "name": "cookiecutter-pypackage",
+  "image": "python:3.10-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {},
+    "ghcr.io/devcontainers-extra/features/poetry:2": {
+      "version": "2.1.4"
+    }
+  },
+  "workspaceFolder": "/opt/cookiecutter-pypackage",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/opt/cookiecutter-pypackage,type=bind,consistency=cached",
+  "runArgs": ["--runtime=runc"],
+  "onCreateCommand": ". /opt/cookiecutter-pypackage/.devcontainer/setup_user.sh",
+  "postCreateCommand": "poetry config virtualenvs.create false && poetry install --with dev --no-root",
+  "remoteUser": "${localEnv:USER}"
+}
