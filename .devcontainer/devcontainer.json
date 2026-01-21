@@ -1,10 +1,10 @@
 {
   "name": "cookiecutter-pypackage",
-  "image": "python:3.10-bookworm",
+  "image": "python:3.14-bookworm",
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {},
     "ghcr.io/devcontainers-extra/features/poetry:2": {
-      "version": "2.1.4"
+      "version": "2.3.1"
     }
   },
   "workspaceFolder": "/opt/cookiecutter-pypackage",
