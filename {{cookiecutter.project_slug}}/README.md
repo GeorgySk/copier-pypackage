@@ -14,7 +14,7 @@ Summary
 
 ---
 
-In what follows `python` is an alias for `python{{ cookiecutter.python_version }}`
+In what follows, `python` is an alias for `python{{ cookiecutter.python_version }}`
 or any later version.
 
 Installation
