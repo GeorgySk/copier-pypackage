@@ -1,8 +1,6 @@
 cookiecutter-pypackage
 ===========
 
-
-[![](https://travis-ci.org/LostFan123/npd.svg?branch=master)](https://travis-ci.org/LostFan123/npd "Travis CI")
 [![](https://codecov.io/gh/LostFan123/npd/branch/master/graph/badge.svg)](https://codecov.io/gh/LostFan123/npd "Codecov")
 [![](https://img.shields.io/github/license/LostFan123/npd.svg)](https://github.com/LostFan123/npd/blob/master/LICENSE "License")
 [![](https://badge.fury.io/py/npd.svg)](https://badge.fury.io/py/npd "PyPI")
@@ -10,13 +8,7 @@ cookiecutter-pypackage
 Summary
 -------
 
-Cookiecutter-pypackage is a Cookiecutter template for developing a Python library using such tools as Docker, Docker
-Compose, Poetry, bump-my-version, pytest, pytest-cov, and Hypothesis library for testing.
-
----
-
-In what follows `python` is an alias for `python3.10` or any later
-version.
+Cookiecutter-pypackage is a Cookiecutter template for developing a Python library using such tools as Docker, Poetry, bump-my-version, pytest, pytest-cov, and Hypothesis library for testing.
 
 Usage
 ------------
@@ -30,10 +22,22 @@ Usage
     git clone https://github.com/GeorgySk/cookiecutter-pypackage.git
     cd cookiecutter-pypackage
     ```
-3. Run Cookiecutter
+3. Generate your project with Cookiecutter
     ```shell
-    cookiecutter cookiecutter-pypackage/
+    cookiecutter .
     ```
+
+### With dev container
+1. Clone the current repository
+    ```shell
+    git clone https://github.com/GeorgySk/cookiecutter-pypackage.git
+   ```
+2. Open the project with IDE that supports dev containers such as VS Code or PyCharm.
+3. Launch the dev container from _.devcontainer/devcontainer.json_
+4. Generate your project with Cookiecutter
+   ```shell
+   cookiecutter .
+   ```
 
 ### With Docker
 1. Clone the current repository
@@ -77,7 +81,7 @@ Development
 #### Preparation
 
 Install
-[bump-my-version](https://github.com/callowayproject/bump-my-version/tree/master?tab=readme-ov-file#installation).
+[bump-my-version](https://github.com/callowayproject/bump-my-version/tree/master?tab=readme-ov-file#installation) if not running a dev container.
 
 #### Pre-release
 
