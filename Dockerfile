@@ -10,15 +10,15 @@ RUN pip install "poetry==${POETRY_VERSION}" && \
     poetry config virtualenvs.create false
 
 COPY README.md .
-COPY tests/ tests/
 COPY {{cookiecutter.project_slug}}/ {{cookiecutter.project_slug}}/
 COPY pyproject.toml .
 COPY hooks/ hooks/
+COPY LICENSE .
 
 FROM base AS prod
 RUN poetry install
 
 FROM base AS dev
-RUN poetry install --with dev
+RUN poetry install --with dev --no-root
 
 FROM ${IMAGE_TYPE}
