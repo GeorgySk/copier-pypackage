@@ -13,6 +13,7 @@ COPY README.md .
 COPY {{cookiecutter.project_slug}}/ {{cookiecutter.project_slug}}/
 COPY pyproject.toml .
 COPY hooks/ hooks/
+COPY LICENSE .
 
 FROM base AS prod
 RUN poetry install
