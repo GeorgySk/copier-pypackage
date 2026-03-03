@@ -14,6 +14,7 @@ COPY docs/ docs/
 COPY tests/ tests/
 COPY {{ cookiecutter.project_slug }}/ {{ cookiecutter.project_slug }}/
 COPY pyproject.toml .
+COPY LICENSE .
 
 FROM base AS prod
 RUN poetry install
