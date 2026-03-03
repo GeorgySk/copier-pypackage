@@ -10,7 +10,6 @@ RUN pip install "poetry==${POETRY_VERSION}" && \
     poetry config virtualenvs.create false
 
 COPY README.md .
-COPY tests/ tests/
 COPY {{cookiecutter.project_slug}}/ {{cookiecutter.project_slug}}/
 COPY pyproject.toml .
 COPY hooks/ hooks/
