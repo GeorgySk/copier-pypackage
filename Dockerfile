@@ -19,6 +19,6 @@ FROM base AS prod
 RUN poetry install
 
 FROM base AS dev
-RUN poetry install --with dev
+RUN poetry install --with dev --no-root
 
 FROM ${IMAGE_TYPE}
