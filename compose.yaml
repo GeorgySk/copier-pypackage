@@ -6,7 +6,7 @@ services:
         - PYTHON_IMAGE_VERSION=${PYTHON_IMAGE_VERSION}
         - POETRY_VERSION=${POETRY_VERSION}
         - IMAGE_TYPE=${IMAGE_TYPE}
-    image: georgysk/cookiecutter-pypackage:0.14.0
+    image: georgysk/cookiecutter-pypackage:0.14.1
     volumes:
       - .:/opt/cookiecutter-pypackage
     stdin_open: true
