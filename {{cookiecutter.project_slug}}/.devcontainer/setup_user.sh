@@ -5,6 +5,12 @@ uid=$(stat -c '%u' "$(pwd)")
 gid=$(stat -c '%g' "$(pwd)")
 current_user=$(whoami)
 
+# required for Windows
+if [ "$uid" -eq 0 ] && [ "$gid" -eq 0 ]; then
+    exit 0
+fi
+
+
 if [ "$gid" -ne 1000 ]; then
     sudo groupadd -g "$gid" hostgroup
     if [ "$uid" -ne 1000 ]; then

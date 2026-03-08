@@ -3,6 +3,13 @@ set -eux
 
 uid=$(stat -c '%u' "$(pwd)")
 gid=$(stat -c '%g' "$(pwd)")
+
+# this was necessary for Windows;
+# unclear if this might cause problems on other OS
+if [ "$uid" -eq 0 ] && [ "$gid" -eq 0 ]; then
+    exit 0
+fi
+
 current_user=$(whoami)
 
 if [ "$gid" -ne 1000 ]; then
