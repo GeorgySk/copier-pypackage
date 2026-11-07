@@ -2,17 +2,16 @@
 
 import os
 import sys
+import tomllib
 from datetime import date
 from pathlib import Path
-
-import tomli
 
 # tells autodoc where to find the code
 sys.path.insert(0, os.path.abspath("../.."))
 
 pyproject_path = Path(__file__).resolve().parents[2] / "pyproject.toml"
 with pyproject_path.open("rb") as file:
-    project_data = tomli.load(file)["project"]
+    project_data = tomllib.load(file)["project"]
 
 # -- Project information
 

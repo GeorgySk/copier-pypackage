@@ -14,6 +14,7 @@ import pytest
 from helpers import (
     CI_PROVIDERS,
     LICENSES,
+    PYTHON_VERSIONS,
     YES_NO,
     dependabot_ecosystems,
     github_jobs,
@@ -287,9 +288,19 @@ def test_actionlint(
     assert result.returncode == 0, result.stdout + result.stderr
 
 
-@pytest.mark.parametrize("python_version", ["3.10", "3.14"])
+def test_python_version_choices() -> None:
+    # Python 3.11 is the minimum (3.10 is end-of-life), and the choices end
+    # where the CI matrices end (range(..., 15) in both CI files).
+    assert PYTHON_VERSIONS == [f"3.{minor}" for minor in range(11, 15)]
+
+
+@pytest.mark.parametrize("python_version", PYTHON_VERSIONS)
 def test_python_matrix(baked: Baked, python_version: str) -> None:
     project = baked(ci_provider="both", python_version=python_version)
+    assert (
+        load_toml(project / "pyproject.toml")["project"]["requires-python"]
+        == f">={python_version},<4.0"
+    )
     minor = int(python_version.split(".")[1])
     expected = [f"3.{m}" for m in range(minor, 15)]
 
