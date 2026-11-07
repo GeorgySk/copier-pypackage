@@ -139,3 +139,22 @@ def test_readme_title_is_project_name(
         )
         readme = (project / "README.md").read_text()
         assert readme.split("\n")[0] == project_name
+
+
+@given(
+    project_name=plausible_name.filter(
+        lambda name: is_valid_slug(default_slug(name))
+    )
+)
+def test_docs_title_underline_fits(
+    cookiecutter_config: Path, project_name: str
+) -> None:
+    with tempfile.TemporaryDirectory() as output_dir:
+        project = bake(
+            Path(output_dir), cookiecutter_config, project_name=project_name
+        )
+        index = project / "docs" / "source" / "index.rst"
+        title, underline = index.read_text().split("\n")[:2]
+        assert title == project_name
+        assert set(underline) == {"="}
+        assert len(underline) >= len(title)

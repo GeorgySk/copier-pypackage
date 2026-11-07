@@ -8,6 +8,27 @@ and this project adheres to `Semantic Versioning <https://semver.org/>`_.
 Unreleased
 ----------
 
+0.22.0 (2026-11-07)
+------------------------------
+
+Added
+~~~~~
+
+- Generated projects get a ``docs`` CI job (GitHub and GitLab) that builds
+  the Sphinx docs with warnings treated as errors. Publishing to PyPI and
+  the container registry waits for it.
+
+Fixed
+~~~~~
+
+- The generated API docs page tried to import a nonexistent
+  ``<slug>.<slug>`` module, so it came out empty. It now documents the
+  package itself.
+- Title underlines in the generated docs had a fixed length, so most project
+  names triggered "Title underline too short" warnings. The index page now
+  uses ``project_name`` as its only title.
+- ``version`` and ``release`` were swapped in the generated ``conf.py``.
+
 0.21.0 (2026-11-07)
 ------------------------------
 

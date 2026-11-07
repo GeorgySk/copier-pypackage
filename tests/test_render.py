@@ -150,7 +150,7 @@ def test_ci_jobs(
         use_docker_compose=use_docker_compose,
         use_devcontainer=use_devcontainer,
     )
-    common = {"lint", "test", "build"}
+    common = {"lint", "test", "build", "docs"}
     docker = {"publish-docker"} if use_docker_compose == "yes" else set()
 
     if ci_provider in ("github", "both"):
@@ -368,3 +368,21 @@ def test_devcontainer_setup_script_exists(baked: Baked) -> None:
     script = command.removeprefix("bash ")
     assert script.startswith(f"{workspace}/")
     assert (project / script.removeprefix(f"{workspace}/")).is_file()
+
+
+def test_docs_automodule_targets_exist(baked: Baked) -> None:
+    project = baked(project_name="Demo Lib")
+    targets = [
+        target
+        for page in (project / "docs" / "source").glob("*.rst")
+        for target in re.findall(
+            r"^\.\. automodule:: (\S+)$", page.read_text(), re.MULTILINE
+        )
+    ]
+
+    assert targets
+    for target in targets:
+        path = project.joinpath(*target.split("."))
+        assert (path / "__init__.py").is_file() or path.with_suffix(
+            ".py"
+        ).is_file(), target

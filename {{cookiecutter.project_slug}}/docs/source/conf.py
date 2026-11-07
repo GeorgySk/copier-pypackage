@@ -22,8 +22,9 @@ author = ", ".join(
 )
 copyright = f"{date.today().year}, {author}"
 
-version = project_data["version"]
-release = ".".join(version.split(".")[:2])
+# release is the full version, version the short X.Y
+release = project_data["version"]
+version = ".".join(release.split(".")[:2])
 
 # -- General configuration
 
