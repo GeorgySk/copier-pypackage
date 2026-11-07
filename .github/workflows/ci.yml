@@ -22,7 +22,7 @@ jobs:
       # .env is the single source of truth for the Python and Poetry versions.
       - name: Read tool versions from .env
         run: grep -E '^(PYTHON_IMAGE_VERSION|POETRY_VERSION)=' .env >> "$GITHUB_ENV"
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_IMAGE_VERSION }}
       - name: Install Poetry
@@ -46,7 +46,7 @@ jobs:
       - uses: actions/checkout@v7
       - name: Read tool versions from .env
         run: grep -E '^POETRY_VERSION=' .env >> "$GITHUB_ENV"
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install Poetry
