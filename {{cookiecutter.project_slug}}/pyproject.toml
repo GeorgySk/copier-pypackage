@@ -5,9 +5,9 @@ build-backend = "poetry.core.masonry.api"
 [project]
 name = "{{ cookiecutter.project_slug }}"
 version = "{{ cookiecutter.version }}"
-description = "{{ cookiecutter.project_short_description }}"
+description = "{{ cookiecutter.project_short_description | escape_double_quoted }}"
 authors = [
-    { name = "{{ cookiecutter.full_name }}", email = "{{ cookiecutter.email }}" },
+    { name = "{{ cookiecutter.full_name | escape_double_quoted }}", email = "{{ cookiecutter.email | escape_double_quoted }}" },
 ]
 readme = "README.md"
 license-files = ["LICENSE"]

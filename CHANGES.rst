@@ -8,6 +8,25 @@ and this project adheres to `Semantic Versioning <https://semver.org/>`_.
 Unreleased
 ----------
 
+Changed
+~~~~~~~
+
+- Generation now stops with a clear error, before any file is written, when
+  ``project_slug`` isn't a valid package name: lowercase ASCII letters,
+  digits and underscores, not starting with a digit and not a Python
+  keyword. Previously names like "2D Tools" produced a package that couldn't
+  be imported.
+
+Fixed
+~~~~~
+
+- Quotes and backslashes in ``full_name``, ``email`` and
+  ``project_short_description`` no longer break the generated
+  ``pyproject.toml`` and package ``__init__.py``.
+- Choosing "Not open source" produced an empty ``LICENSE``. It now contains
+  a copyright notice with "All rights reserved."
+- The BSD ``LICENSE`` no longer starts with a blank line.
+
 0.19.0 (2026-11-07)
 ------------------------------
 

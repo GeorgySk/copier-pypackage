@@ -12,6 +12,7 @@
   "use_devcontainer": ["yes", "no"],
   "use_docker_compose": ["yes", "no"],
   "ci_provider": ["github", "gitlab", "both", "none"],
+  "_extensions": ["local_extensions.escape_double_quoted"],
   "__prompts__": {
     "github_username": "GitHub/GitLab username or group (repository namespace)",
     "ci_provider": "CI/CD provider"
