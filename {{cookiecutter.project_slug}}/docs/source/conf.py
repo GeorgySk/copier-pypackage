@@ -1,9 +1,10 @@
 # Configuration file for the Sphinx documentation builder.
 
-from datetime import date
-from pathlib import Path
 import os
 import sys
+from datetime import date
+from pathlib import Path
+
 import tomli
 
 # tells autodoc where to find the code
@@ -16,34 +17,35 @@ with pyproject_path.open("rb") as file:
 # -- Project information
 
 project = project_data["name"]
-author = ', '.join(author_["name"]
-                   for author_ in project_data.get("authors", []))
+author = ", ".join(
+    author_["name"] for author_ in project_data.get("authors", [])
+)
 copyright = f"{date.today().year}, {author}"
 
 version = project_data["version"]
-release = '.'.join(version.split('.')[:2])
+release = ".".join(version.split(".")[:2])
 
 # -- General configuration
 
 extensions = [
-    'sphinx.ext.duration',
-    'sphinx.ext.doctest',
-    'sphinx.ext.autodoc',
-    'sphinx.ext.autosummary',
-    'sphinx.ext.intersphinx',
+    "sphinx.ext.duration",
+    "sphinx.ext.doctest",
+    "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.intersphinx",
 ]
 
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3/', None),
-    'sphinx': ('https://www.sphinx-doc.org/en/master/', None),
+    "python": ("https://docs.python.org/3/", None),
+    "sphinx": ("https://www.sphinx-doc.org/en/master/", None),
 }
-intersphinx_disabled_domains = ['std']
+intersphinx_disabled_domains = ["std"]
 
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # -- Options for HTML output
 
-html_theme = 'sphinx_rtd_theme'
+html_theme = "sphinx_rtd_theme"
 
 # -- Options for EPUB output
-epub_show_urls = 'footnote'
+epub_show_urls = "footnote"

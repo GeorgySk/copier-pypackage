@@ -94,6 +94,33 @@ bump-my-version bump --verbose release
 
 This will set version to `major.minor.patch`.
 
+### Linting and formatting
+
+[Ruff](https://docs.astral.sh/ruff/) is used for both linting and formatting
+(installed with the `dev` dependency group).
+
+Check code
+```bash
+ruff check .
+```
+
+Fix automatically fixable issues
+```bash
+ruff check --fix .
+```
+
+Format code
+```bash
+ruff format .
+```
+
+To run these checks automatically on each commit,
+install the [pre-commit](https://pre-commit.com/) hooks
+(once, after the repository has been initialized with `git init`)
+```bash
+pre-commit install
+```
+
 ### Running tests
 
 Install dependencies
