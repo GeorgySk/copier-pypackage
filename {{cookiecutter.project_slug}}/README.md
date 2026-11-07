@@ -2,7 +2,7 @@
 ===
 
 [![](https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}/workflows/CI/badge.svg)](https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}/actions/workflows/ci.yml "Github Actions")
-[![](https://codecov.io/gh/{{ cookiecutter.github_username }}/gon/branch/master/graph/badge.svg)](https://codecov.io/gh/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }} "Codecov")
+[![](https://codecov.io/gh/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}/branch/master/graph/badge.svg)](https://codecov.io/gh/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }} "Codecov")
 [![](https://readthedocs.org/projects/{{ cookiecutter.project_slug }}/badge/?version=latest)](https://{{ cookiecutter.project_slug }}.readthedocs.io/en/latest "Documentation")
 [![](https://img.shields.io/github/license/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}.svg)](https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}/blob/master/LICENSE "License")
 [![](https://badge.fury.io/py/{{ cookiecutter.project_slug }}.svg)](https://badge.fury.io/py/{{ cookiecutter.project_slug }} "PyPI")
@@ -132,8 +132,10 @@ Plain
 ```bash
 pytest
 ```
+{%- if cookiecutter.use_docker_compose == "yes" %}
 
 Inside `Docker` container:
   ```bash
   docker-compose run --entrypoint pytest {{ cookiecutter.project_slug }}
   ```
+{%- endif %}
