@@ -8,6 +8,36 @@ and this project adheres to `Semantic Versioning <https://semver.org/>`_.
 Unreleased
 ----------
 
+Added
+~~~~~
+
+- ``ci_provider`` prompt (``github``, ``gitlab``, ``both`` or ``none``) and
+  CI/CD configs for generated projects: ``.github/workflows/ci.yml`` and
+  ``.gitlab-ci.yml``. Both lint with Ruff, run the tests with coverage on
+  every Python version from ``python_version`` to 3.14, and build the
+  package. On final release tags (``vX.Y.Z``) they publish to PyPI and, with
+  ``use_docker_compose=yes``, push the ``prod`` Docker image to GHCR or the
+  GitLab container registry. With ``both``, only GitHub publishes to PyPI.
+- Generated projects tag releases as ``vX.Y.Z`` when ``bump-my-version``
+  commits (``use_devcontainer=yes``).
+- Dependabot keeps GitHub Actions up to date in generated projects that use
+  GitHub CI.
+
+Changed
+~~~~~~~
+
+- README badges and links in generated projects follow ``ci_provider``
+  (GitHub Actions + Codecov, or GitLab pipeline + coverage) and point at the
+  ``main`` branch instead of ``master``.
+
+Fixed
+~~~~~
+
+- The "Running tests" section of the generated README referred to a
+  nonexistent ``requirements-tests.txt``. It now uses
+  ``poetry install --with dev`` and ``poetry run pytest``, and the Docker
+  command uses ``docker compose`` instead of the old ``docker-compose``.
+
 0.18.0 (2026-11-07)
 ------------------------------
 
