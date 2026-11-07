@@ -19,6 +19,14 @@ filename = "{{ cookiecutter.project_slug }}/__init__.py"
 [[tool.bumpversion.files]]
 filename = "pyproject.toml"
 
+# On release, turn the "Unreleased" section into a dated version section
+# and start a new empty "Unreleased" section above it.
+[[tool.bumpversion.files]]
+filename = "CHANGES.rst"
+search = "Unreleased\n----------"
+replace = "Unreleased\n----------\n\n{new_version} ({now:%Y-%m-%d})\n------------------------------"
+include_bumps = ["release"]
+
 [tool.bumpversion.parts.release]
 optional_value = "beta"
 values = [
