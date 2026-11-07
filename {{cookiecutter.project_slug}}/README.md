@@ -151,7 +151,7 @@ One-time setup:
 {%- endif %}
 {%- endif %}
 
-### Linting and formatting
+### Linting, formatting and type checking
 
 [Ruff](https://docs.astral.sh/ruff/) is used for both linting and formatting
 (installed with the `dev` dependency group).
@@ -171,7 +171,16 @@ Format code
 ruff format .
 ```
 
-To run these checks automatically on each commit,
+[mypy](https://mypy.readthedocs.io/) checks types in strict mode
+(configured in `pyproject.toml`)
+```bash
+mypy .
+```
+
+The package ships a `py.typed` marker, so projects that use it get its type
+hints too.
+
+To run these checks (Ruff and mypy) automatically on each commit,
 install the [pre-commit](https://pre-commit.com/) hooks
 (once, after the repository has been initialized with `git init`)
 ```bash

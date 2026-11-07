@@ -27,6 +27,8 @@ actionlint-py = "^1.7.12.25"
 pyyaml = "^6.0.3"
 # keep in sync with the generated project's dev group and pre-commit rev
 ruff = "0.17.4"
+mypy = "^2.4.1"
+types-pyyaml = "^6.0.12"
 
 # Same rules as the generated project's [tool.ruff]
 [tool.ruff]
@@ -38,6 +40,17 @@ extend-exclude = ["[{][{]cookiecutter.project_slug[}][}]"]
 
 [tool.ruff.lint]
 select = ["E", "W", "F", "B", "I"]
+
+# Same strictness as the generated project's [tool.mypy]. hooks/ is left
+# out: its files are Jinja templates.
+[tool.mypy]
+strict = true
+files = ["tests", "local_extensions.py"]
+
+# cookiecutter ships no type information (no py.typed).
+[[tool.mypy.overrides]]
+module = ["cookiecutter.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 # Tooling tests need network and take minutes: run them with -m tooling

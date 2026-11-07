@@ -93,7 +93,9 @@ def module_strings(path: Path) -> tuple[str, dict[str, str]]:
         if isinstance(node, ast.Assign)
         and isinstance(node.targets[0], ast.Name)
     }
-    return docstring_node.value.value, assignments
+    docstring = docstring_node.value.value
+    assert isinstance(docstring, str)
+    return docstring, assignments
 
 
 @given(full_name=single_line, email=single_line, description=long_line)

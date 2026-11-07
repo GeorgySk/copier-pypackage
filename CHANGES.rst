@@ -8,6 +8,14 @@ and this project adheres to `Semantic Versioning <https://semver.org/>`_.
 Unreleased
 ----------
 
+Added
+~~~~~
+
+- Generated projects are type-checked with mypy in strict mode: in the
+  ``lint`` CI job (GitHub and GitLab) and as a pre-commit hook. They also
+  ship a ``py.typed`` marker, so projects that use the package get its type
+  hints.
+
 0.24.0 (2026-11-07)
 ------------------------------
 

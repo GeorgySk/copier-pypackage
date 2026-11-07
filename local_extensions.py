@@ -9,7 +9,7 @@ filters below.
 from cookiecutter.utils import simple_filter
 
 
-@simple_filter
+@simple_filter  # type: ignore[untyped-decorator]  # cookiecutter is untyped
 def escape_double_quoted(value: object) -> str:
     """
     Escape ``value`` for use between double quotes.
@@ -21,7 +21,7 @@ def escape_double_quoted(value: object) -> str:
     return str(value).replace("\\", "\\\\").replace('"', '\\"')
 
 
-@simple_filter
+@simple_filter  # type: ignore[untyped-decorator]  # cookiecutter is untyped
 def python_string(value: object) -> str:
     """
     Render ``value`` as a Python string literal, quotes included.
