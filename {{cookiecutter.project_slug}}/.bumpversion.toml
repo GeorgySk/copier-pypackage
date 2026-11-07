@@ -1,5 +1,5 @@
 [tool.bumpversion]
-commit = {{ "true" if cookiecutter.use_devcontainer else "false" }}
+commit = {{ "true" if cookiecutter.use_devcontainer == "yes" else "false" }}
 tag = false
 current_version = "{{ cookiecutter.version }}"
 parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)(\\-(?P<release>[a-z]+))?"

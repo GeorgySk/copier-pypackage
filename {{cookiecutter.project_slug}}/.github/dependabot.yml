@@ -8,8 +8,10 @@ updates:
     groups:
       python-minor-patch:
         update-types: ["minor", "patch"]
+{%- if cookiecutter.use_devcontainer == "yes" %}
   # .devcontainer/devcontainer.json
   - package-ecosystem: "devcontainers"
     directory: "/"
     schedule:
       interval: "weekly"
+{%- endif %}
