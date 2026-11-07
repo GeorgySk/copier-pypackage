@@ -9,14 +9,13 @@ WORKDIR /opt/cookiecutter-pypackage
 RUN pip install "poetry==${POETRY_VERSION}" && \
     poetry config virtualenvs.create false
 
-COPY README.md .
-COPY {{cookiecutter.project_slug}}/ {{cookiecutter.project_slug}}/
-COPY pyproject.toml .
+COPY README.md LICENSE pyproject.toml poetry.lock ./
+COPY cookiecutter.json local_extensions.py ./
 COPY hooks/ hooks/
-COPY LICENSE .
+COPY {{cookiecutter.project_slug}}/ {{cookiecutter.project_slug}}/
 
 FROM base AS prod
-RUN poetry install
+RUN poetry install --no-root
 
 FROM base AS dev
 RUN poetry install --with dev --no-root

@@ -1,9 +1,8 @@
 cookiecutter-pypackage
 ===========
 
-[![](https://codecov.io/gh/LostFan123/npd/branch/master/graph/badge.svg)](https://codecov.io/gh/LostFan123/npd "Codecov")
-[![](https://img.shields.io/github/license/LostFan123/npd.svg)](https://github.com/LostFan123/npd/blob/master/LICENSE "License")
-[![](https://badge.fury.io/py/npd.svg)](https://badge.fury.io/py/npd "PyPI")
+[![CI](https://github.com/GeorgySk/cookiecutter-pypackage/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/GeorgySk/cookiecutter-pypackage/actions/workflows/ci.yml "CI")
+[![](https://img.shields.io/github/license/GeorgySk/cookiecutter-pypackage.svg)](https://github.com/GeorgySk/cookiecutter-pypackage/blob/main/LICENSE "License")
 
 Summary
 -------
