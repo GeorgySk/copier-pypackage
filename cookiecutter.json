@@ -8,13 +8,14 @@
   "version": "0.1.0",
   "open_source_license": ["MIT license", "BSD license", "ISC license", "Apache Software License 2.0", "GNU General Public License v3", "Not open source"],
   "poetry_version": "2.1.4",
-  "python_version": "3.10",
+  "python_version": ["3.11", "3.12", "3.13", "3.14"],
   "use_devcontainer": ["yes", "no"],
   "use_docker_compose": ["yes", "no"],
   "ci_provider": ["github", "gitlab", "both", "none"],
   "_extensions": ["local_extensions.escape_double_quoted"],
   "__prompts__": {
     "github_username": "GitHub/GitLab username or group (repository namespace)",
+    "python_version": "Minimum supported Python version",
     "ci_provider": "CI/CD provider"
   }
 }

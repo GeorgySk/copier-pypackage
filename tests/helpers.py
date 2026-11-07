@@ -1,10 +1,10 @@
 import json
 import os
 import re
+import tomllib
 from pathlib import Path
 from typing import Any
 
-import tomllib
 import yaml
 from cookiecutter.main import cookiecutter
 
@@ -15,9 +15,9 @@ REPO_ROOT = Path(
 
 CI_PROVIDERS = ["github", "gitlab", "both", "none"]
 YES_NO = ["yes", "no"]
-LICENSES = json.loads((REPO_ROOT / "cookiecutter.json").read_text())[
-    "open_source_license"
-]
+COOKIECUTTER_JSON = json.loads((REPO_ROOT / "cookiecutter.json").read_text())
+LICENSES = COOKIECUTTER_JSON["open_source_license"]
+PYTHON_VERSIONS = COOKIECUTTER_JSON["python_version"]
 
 # Same rule as hooks/pre_gen_project.py: importable and a valid PyPI name.
 VALID_SLUG = re.compile(r"[a-z_][a-z0-9_]*")

@@ -8,6 +8,16 @@ and this project adheres to `Semantic Versioning <https://semver.org/>`_.
 Unreleased
 ----------
 
+Changed
+~~~~~~~
+
+- ``python_version`` is now a choice between 3.11, 3.12, 3.13 and 3.14,
+  defaulting to 3.11. The previous default, 3.10, has reached end of life,
+  and free text allowed values that broke the CI test matrix.
+- The generated docs read ``pyproject.toml`` with the standard library's
+  ``tomllib``, so the ``docs`` dependency group no longer needs ``tomli``.
+- Running the template now requires Python 3.11 or later.
+
 0.22.0 (2026-11-07)
 ------------------------------
 
