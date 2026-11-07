@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 from cookiecutter.exceptions import FailedHookException
-from hypothesis import given
+from hypothesis import example, given
 from hypothesis import strategies as st
 
 from helpers import VALID_SLUG, bake, load_toml
@@ -97,6 +97,8 @@ def module_strings(path: Path) -> tuple[str, dict[str, str]]:
 
 
 @given(full_name=single_line, email=single_line, description=long_line)
+# Trailing whitespace is trimmed before the final "." (found on CI).
+@example(full_name="", email="", description="0 ")
 def test_free_text_round_trips(
     cookiecutter_config: Path, full_name: str, email: str, description: str
 ) -> None:
@@ -117,7 +119,7 @@ def test_free_text_round_trips(
         docstring, assignments = module_strings(init)
         # The docstring is stripped and wrapped at 72 columns.
         assert normalize_whitespace(docstring) == normalize_whitespace(
-            description + "."
+            description.strip() + "."
         )
         assert assignments["__author__"] == full_name
         assert assignments["__email__"] == email
