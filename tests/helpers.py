@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import subprocess
 import tomllib
 from pathlib import Path
 from typing import Any
@@ -74,3 +75,59 @@ def gitlab_jobs(project: Path) -> set[str]:
 def dependabot_ecosystems(project: Path) -> set[str]:
     config = load_yaml(project / ".github" / "dependabot.yml")
     return {update["package-ecosystem"] for update in config["updates"]}
+
+
+# Dropped from the environment of commands run in a rendered project:
+# - GIT_DIR/GIT_INDEX_FILE/GIT_WORK_TREE (set when pytest runs from a git
+#   hook) would point git at this repository instead of ``cwd``;
+# - VIRTUAL_ENV/POETRY_ACTIVE would make Poetry install the rendered
+#   project into the environment running the tests;
+# - PYTHONPATH could shadow the rendered project's own modules.
+DROPPED_ENV_PREFIXES = ("GIT_", "VIRTUAL_ENV", "POETRY_ACTIVE", "PYTHONPATH")
+
+
+def run_isolated(
+    command: list[str],
+    cwd: Path,
+    extra_env: dict[str, str] | None = None,
+    timeout: float = 60,
+) -> subprocess.CompletedProcess[str]:
+    """
+    Run ``command`` in ``cwd``, isolated from the caller's environment.
+
+    The user's git config (which could sign commits or run hooks) is
+    ignored too, and git gets a fixed identity.
+    """
+    env = {
+        key: value
+        for key, value in os.environ.items()
+        if not key.startswith(DROPPED_ENV_PREFIXES)
+    }
+    env |= {
+        "GIT_CONFIG_GLOBAL": os.devnull,
+        "GIT_CONFIG_NOSYSTEM": "1",
+        "GIT_AUTHOR_NAME": "test",
+        "GIT_AUTHOR_EMAIL": "test@example.com",
+        "GIT_COMMITTER_NAME": "test",
+        "GIT_COMMITTER_EMAIL": "test@example.com",
+    } | (extra_env or {})
+    return subprocess.run(
+        command,
+        cwd=cwd,
+        env=env,
+        capture_output=True,
+        text=True,
+        stdin=subprocess.DEVNULL,
+        timeout=timeout,
+    )
+
+
+def git_commit_all(project: Path) -> None:
+    """Make ``project`` a git repository with everything committed."""
+    for command in (
+        ["git", "init", "--quiet", "--initial-branch=main"],
+        ["git", "add", "--all"],
+        ["git", "commit", "--quiet", "--no-verify", "--message", "Initial"],
+    ):
+        result = run_isolated(command, cwd=project)
+        assert result.returncode == 0, result.stderr

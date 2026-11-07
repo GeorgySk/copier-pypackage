@@ -2,6 +2,8 @@
 
 import ast
 import keyword
+import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -40,6 +42,13 @@ plausible_name = st.from_regex(
     r"[A-Za-z_][A-Za-z0-9_ \-]{0,29}", fullmatch=True
 )
 project_names = st.one_of(name_like, plausible_name)
+# Long enough that the docstring in __init__.py has to wrap.
+long_line = st.text(
+    st.characters(
+        exclude_categories=("Cs", "Cc"), exclude_characters=EXCLUDED
+    ),
+    max_size=200,
+)
 
 
 def default_slug(project_name: str) -> str:
@@ -49,6 +58,27 @@ def default_slug(project_name: str) -> str:
 
 def is_valid_slug(slug: str) -> bool:
     return bool(VALID_SLUG.fullmatch(slug)) and not keyword.iskeyword(slug)
+
+
+def normalize_whitespace(text: str) -> str:
+    return " ".join(text.split())
+
+
+def assert_ruff_clean(project: Path, path: Path) -> None:
+    """``path`` passes the generated project's Ruff config, bar E501."""
+    # E501 is left to tests/test_tooling.py: heavily escaped names can
+    # exceed 79 columns, which a realistic prompt answer won't.
+    for command in (
+        ["check", "--ignore", "E501", str(path)],
+        ["format", "--check", "--diff", str(path)],
+    ):
+        result = subprocess.run(
+            [sys.executable, "-m", "ruff", *command],
+            cwd=project,
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0, result.stdout + result.stderr
 
 
 def module_strings(path: Path) -> tuple[str, dict[str, str]]:
@@ -66,7 +96,7 @@ def module_strings(path: Path) -> tuple[str, dict[str, str]]:
     return docstring_node.value.value, assignments
 
 
-@given(full_name=single_line, email=single_line, description=single_line)
+@given(full_name=single_line, email=single_line, description=long_line)
 def test_free_text_round_trips(
     cookiecutter_config: Path, full_name: str, email: str, description: str
 ) -> None:
@@ -83,15 +113,18 @@ def test_free_text_round_trips(
         assert metadata["authors"] == [{"name": full_name, "email": email}]
         assert metadata["description"] == description
 
-        docstring, assignments = module_strings(
-            project / project.name / "__init__.py"
+        init = project / project.name / "__init__.py"
+        docstring, assignments = module_strings(init)
+        # The docstring is stripped and wrapped at 72 columns.
+        assert normalize_whitespace(docstring) == normalize_whitespace(
+            description + "."
         )
-        assert docstring == description + "."
         assert assignments["__author__"] == full_name
         assert assignments["__email__"] == email
 
         assert description in (project / "README.md").read_text()
         assert full_name in (project / "LICENSE").read_text()
+        assert_ruff_clean(project, init)
 
 
 def assert_slug_handled(

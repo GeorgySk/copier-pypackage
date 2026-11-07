@@ -8,6 +8,16 @@ and this project adheres to `Semantic Versioning <https://semver.org/>`_.
 Unreleased
 ----------
 
+Fixed
+~~~~~
+
+- A ``project_short_description`` longer than about 70 characters made the
+  generated package fail ``ruff check`` (line too long). The docstring in
+  the package's ``__init__.py`` is now wrapped.
+- A ``full_name`` or ``email`` with more double than single quotes made the
+  generated package fail ``ruff format --check`` and its pre-commit hook.
+  These values are now written with the quotes Ruff prefers.
+
 0.23.0 (2026-11-07)
 ------------------------------
 

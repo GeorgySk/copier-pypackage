@@ -56,6 +56,28 @@ jobs:
       - name: Run tests
         run: poetry run pytest --hypothesis-profile=ci
 
+  # Installs a rendered project and runs its own tooling (pytest -m tooling).
+  tooling:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The generated project's minimum Python and the latest one.
+        python-version: ["3.11", "3.14"]
+    steps:
+      - uses: actions/checkout@v5
+      - name: Read tool versions from .env
+        run: grep -E '^POETRY_VERSION=' .env >> "$GITHUB_ENV"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install Poetry
+        run: pipx install "poetry==${POETRY_VERSION}"
+      - name: Install dependencies
+        run: poetry install --with dev --no-root
+      - name: Run tooling tests
+        run: poetry run pytest -m tooling
+
   docker:
     runs-on: ubuntu-latest
     strategy:

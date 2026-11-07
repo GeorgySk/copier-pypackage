@@ -19,3 +19,18 @@ def escape_double_quoted(value: object) -> str:
     no control characters (prompt answers are single lines).
     """
     return str(value).replace("\\", "\\\\").replace('"', '\\"')
+
+
+@simple_filter
+def python_string(value: object) -> str:
+    """
+    Render ``value`` as a Python string literal, quotes included.
+
+    Uses the quotes ``ruff format`` would pick: double quotes, unless the
+    value has more double than single quotes. A generated project then
+    passes ``ruff format --check`` whatever the prompt answer was.
+    """
+    text = str(value).replace("\\", "\\\\")
+    if text.count('"') > text.count("'"):
+        return "'" + text.replace("'", "\\'") + "'"
+    return '"' + text.replace('"', '\\"') + '"'
