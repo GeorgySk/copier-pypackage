@@ -98,6 +98,11 @@ def test_ruff(project: Project) -> None:
     project.poetry_run("ruff", "format", "--check", ".")
 
 
+def test_mypy(project: Project) -> None:
+    # The same command as the generated CI's lint job (strict mode).
+    project.poetry_run("mypy", ".")
+
+
 def test_pytest(project: Project) -> None:
     # The same command as the generated CI's test job.
     project.poetry_run(
@@ -142,6 +147,7 @@ def test_build(project: Project, tmp_path: Path) -> None:
             archive.read(f"{dist_info}/METADATA").decode()
         )
     assert f"{slug}/__init__.py" in names
+    assert f"{slug}/py.typed" in names
     assert any(
         name.startswith(f"{dist_info}/") and name.endswith("/LICENSE")
         for name in names

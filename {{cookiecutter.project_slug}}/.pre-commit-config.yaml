@@ -5,3 +5,13 @@ repos:
       - id: ruff-check
         args: [--fix]
       - id: ruff-format
+  # Uses the mypy from the project environment (`poetry install --with dev`),
+  # so it sees the project's dependencies and needs no separate pin.
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: mypy .
+        language: system
+        types: [python]
+        pass_filenames: false

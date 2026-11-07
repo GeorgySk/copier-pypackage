@@ -376,3 +376,27 @@ def test_ruff_pins_in_sync(baked: Baked) -> None:
         == generated_pin.removeprefix("ruff==")
         == root_pin
     )
+
+
+@ci_choices
+def test_lint_job_type_checks(
+    baked: Baked, ci_provider: str, use_docker_compose: str
+) -> None:
+    project = baked(
+        ci_provider=ci_provider, use_docker_compose=use_docker_compose
+    )
+
+    if ci_provider in ("github", "both"):
+        workflow = load_yaml(project / ".github" / "workflows" / "ci.yml")
+        steps = workflow["jobs"]["lint"]["steps"]
+        assert "poetry run mypy ." in [step.get("run") for step in steps]
+    if ci_provider in ("gitlab", "both"):
+        lint = load_yaml(project / ".gitlab-ci.yml")["lint"]
+        assert "poetry run mypy ." in lint["script"]
+
+
+def test_package_is_typed(baked: Baked) -> None:
+    project = baked()
+    assert (project / project.name / "py.typed").is_file()
+    config = load_toml(project / "pyproject.toml")
+    assert config["tool"]["mypy"]["strict"] is True
