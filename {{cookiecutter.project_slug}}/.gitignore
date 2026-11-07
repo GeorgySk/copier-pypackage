@@ -110,3 +110,6 @@ docs/_build/
 
 ### mkdocs documentation
 /site
+
+# ruff
+.ruff_cache/

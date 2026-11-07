@@ -11,7 +11,7 @@ authors = [
 ]
 readme = "README.md"
 license-files = ["LICENSE"]
-requires-python = "^{{ cookiecutter.python_version }}"
+requires-python = ">={{ cookiecutter.python_version }},<4.0"
 dependencies = []
 
 [dependency-groups]
@@ -25,7 +25,10 @@ dev = [
     "pytest>=9.0.2,<10.0.0",
     "pytest-cov>=7.0.0,<8.0.0",
     # fixed for easier way to reproduce across various machines
-    "hypothesis==6.150.2"
+    "hypothesis==6.150.2",
+    # keep in sync with the ruff-pre-commit rev in .pre-commit-config.yaml
+    "ruff==0.17.4",
+    "pre-commit>=4.0.0,<5.0.0"
 ]
 
 [tool.poetry.group.docs]
@@ -39,3 +42,9 @@ source = ["{{ cookiecutter.project_slug }}"]
 
 [tool.pytest.ini_options]
 addopts = "--verbose -s --hypothesis-profile=default"
+
+[tool.ruff]
+line-length = 79
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "B", "I"]
