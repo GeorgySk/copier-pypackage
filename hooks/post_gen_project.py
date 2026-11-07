@@ -14,6 +14,7 @@ log.debug("use_docker_compose = %s", use_docker_compose)
 devcontainer_dir = Path(".devcontainer")
 dockerfile = Path("Dockerfile")
 compose_file = Path("compose.yaml")
+env_file = Path(".env")  # only holds Docker build args
 
 if use_devcontainer != "yes":
     if devcontainer_dir.exists():
@@ -23,7 +24,7 @@ if use_devcontainer != "yes":
         log.debug("%s does not exist, nothing to remove", devcontainer_dir)
 
 if use_docker_compose != "yes":
-    for path in (dockerfile, compose_file):
+    for path in (dockerfile, compose_file, env_file):
         if path.exists():
             log.debug("Removing %s", path)
             path.unlink()

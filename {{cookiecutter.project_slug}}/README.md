@@ -132,8 +132,10 @@ Plain
 ```bash
 pytest
 ```
+{%- if cookiecutter.use_docker_compose == "yes" %}
 
 Inside `Docker` container:
   ```bash
   docker-compose run --entrypoint pytest {{ cookiecutter.project_slug }}
   ```
+{%- endif %}

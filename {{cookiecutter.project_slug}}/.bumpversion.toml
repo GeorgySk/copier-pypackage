@@ -7,9 +7,11 @@ serialize = [
     "{major}.{minor}.{patch}-{release}",
     "{major}.{minor}.{patch}"
 ]
+{%- if cookiecutter.use_docker_compose == "yes" %}
 
 [[tool.bumpversion.files]]
 filename = "compose.yaml"
+{%- endif %}
 
 [[tool.bumpversion.files]]
 filename = "{{ cookiecutter.project_slug }}/__init__.py"
