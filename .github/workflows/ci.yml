@@ -18,7 +18,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       # .env is the single source of truth for the Python and Poetry versions.
       - name: Read tool versions from .env
         run: grep -E '^(PYTHON_IMAGE_VERSION|POETRY_VERSION)=' .env >> "$GITHUB_ENV"
@@ -43,7 +43,7 @@ jobs:
         # Raise the upper bound by hand when a new Python is released.
         python-version: ["3.11", "3.12", "3.13", "3.14"]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Read tool versions from .env
         run: grep -E '^POETRY_VERSION=' .env >> "$GITHUB_ENV"
       - uses: actions/setup-python@v5
@@ -63,7 +63,7 @@ jobs:
       matrix:
         image-type: [dev, prod]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       # Python and Poetry versions come from .env; IMAGE_TYPE overrides it.
       - name: Build image
         run: docker compose build
