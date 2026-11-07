@@ -1,0 +1,71 @@
+# CI for the template repo itself (the generated project has its own
+# workflow under {{cookiecutter.project_slug}}/.github/).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      # .env is the single source of truth for the Python and Poetry versions.
+      - name: Read tool versions from .env
+        run: grep -E '^(PYTHON_IMAGE_VERSION|POETRY_VERSION)=' .env >> "$GITHUB_ENV"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_IMAGE_VERSION }}
+      - name: Install Poetry
+        run: pipx install "poetry==${POETRY_VERSION}"
+      - name: Install dependencies
+        run: poetry install --with dev --no-root
+      - name: Check code
+        run: poetry run ruff check .
+      - name: Check formatting
+        run: poetry run ruff format --check .
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The tests need Python >= 3.11 (tomllib, check-jsonschema).
+        # Raise the upper bound by hand when a new Python is released.
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v5
+      - name: Read tool versions from .env
+        run: grep -E '^POETRY_VERSION=' .env >> "$GITHUB_ENV"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install Poetry
+        run: pipx install "poetry==${POETRY_VERSION}"
+      - name: Install dependencies
+        run: poetry install --with dev --no-root
+      - name: Run tests
+        run: poetry run pytest --hypothesis-profile=ci
+
+  docker:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        image-type: [dev, prod]
+    steps:
+      - uses: actions/checkout@v5
+      # Python and Poetry versions come from .env; IMAGE_TYPE overrides it.
+      - name: Build image
+        run: docker compose build
+        env:
+          IMAGE_TYPE: ${{ matrix.image-type }}

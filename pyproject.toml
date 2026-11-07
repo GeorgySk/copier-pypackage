@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "cookiecutter-pyproject"
-version = "0.20.0"
+version = "0.21.0"
 description = ""
 authors = [
     { name = "Georgy Skorobogatov", email = "skorobogatovgeorgy+github@gmail.com" },
@@ -25,11 +25,16 @@ hypothesis = "^6.168.5"
 check-jsonschema = {version = "^0.39.0", python = ">=3.11"}
 actionlint-py = "^1.7.12.25"
 pyyaml = "^6.0.3"
+# keep in sync with the generated project's dev group and pre-commit rev
+ruff = "0.17.4"
 
 # Same rules as the generated project's [tool.ruff]
 [tool.ruff]
 line-length = 79
 src = [".", "tests"]
+# The generated project's Jinja-templated files don't parse. The brackets
+# escape the braces, which globs would otherwise treat as alternation.
+extend-exclude = ["[{][{]cookiecutter.project_slug[}][}]"]
 
 [tool.ruff.lint]
 select = ["E", "W", "F", "B", "I"]

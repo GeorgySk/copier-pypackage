@@ -8,6 +8,20 @@ and this project adheres to `Semantic Versioning <https://semver.org/>`_.
 Unreleased
 ----------
 
+0.21.0 (2026-11-07)
+------------------------------
+
+Fixed
+~~~~~
+
+- The ``prod`` Docker image failed to build because Poetry tried to install
+  the template repo as a package.
+- The Docker image now includes ``poetry.lock``, so dependency versions match
+  the lock file, and ``cookiecutter.json`` and ``local_extensions.py``, so it
+  can render the template without the repository mounted.
+- The README badges pointed at an unrelated project. They now show this
+  repository's CI status and license.
+
 0.20.0 (2026-11-07)
 ------------------------------
 
