@@ -12,7 +12,7 @@
   "use_devcontainer": ["yes", "no"],
   "use_docker_compose": ["yes", "no"],
   "ci_provider": ["github", "gitlab", "both", "none"],
-  "_extensions": ["local_extensions.escape_double_quoted"],
+  "_extensions": ["local_extensions.escape_double_quoted", "local_extensions.python_string"],
   "__prompts__": {
     "github_username": "GitHub/GitLab username or group (repository namespace)",
     "python_version": "Minimum supported Python version",

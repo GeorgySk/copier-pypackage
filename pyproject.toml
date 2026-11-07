@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "cookiecutter-pyproject"
-version = "0.23.0"
+version = "0.24.0"
 description = ""
 authors = [
     { name = "Georgy Skorobogatov", email = "skorobogatovgeorgy+github@gmail.com" },
@@ -40,7 +40,11 @@ extend-exclude = ["[{][{]cookiecutter.project_slug[}][}]"]
 select = ["E", "W", "F", "B", "I"]
 
 [tool.pytest.ini_options]
-addopts = "--verbose -s --hypothesis-profile=default"
+# Tooling tests need network and take minutes: run them with -m tooling
+addopts = "--verbose -s --hypothesis-profile=default -m 'not tooling'"
+markers = [
+    "tooling: installs and runs a generated project's own tools (slow, needs network)",
+]
 testpaths = ["tests"]
 # pytest's defaults plus the template directory: the template's own tests/
 # contains Jinja and must not be collected here

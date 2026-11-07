@@ -1,7 +1,6 @@
 """Render every combination of the choice prompts and inspect it."""
 
 import datetime
-import os
 import re
 import shutil
 import subprocess
@@ -15,13 +14,16 @@ from helpers import (
     CI_PROVIDERS,
     LICENSES,
     PYTHON_VERSIONS,
+    REPO_ROOT,
     YES_NO,
     dependabot_ecosystems,
+    git_commit_all,
     github_jobs,
     gitlab_jobs,
     load_json,
     load_toml,
     load_yaml,
+    run_isolated,
 )
 
 Baked = Callable[..., Path]
@@ -54,41 +56,6 @@ def project_files(project: Path) -> list[Path]:
         for path in project.rglob("*")
         if path.is_file() and ".git" not in path.relative_to(project).parts
     ]
-
-
-def run_isolated(
-    command: list[str], cwd: Path
-) -> subprocess.CompletedProcess[str]:
-    """
-    Run ``command`` in ``cwd``, isolated from the caller's git setup.
-
-    Inherited ``GIT_DIR``/``GIT_INDEX_FILE``/``GIT_WORK_TREE`` (set when
-    pytest runs from a git hook) would point git at this repository
-    instead of ``cwd``, and the user's git config could sign commits or
-    run hooks, so both are dropped.
-    """
-    env = {
-        key: value
-        for key, value in os.environ.items()
-        if not key.startswith("GIT_")
-    }
-    env |= {
-        "GIT_CONFIG_GLOBAL": os.devnull,
-        "GIT_CONFIG_NOSYSTEM": "1",
-        "GIT_AUTHOR_NAME": "test",
-        "GIT_AUTHOR_EMAIL": "test@example.com",
-        "GIT_COMMITTER_NAME": "test",
-        "GIT_COMMITTER_EMAIL": "test@example.com",
-    }
-    return subprocess.run(
-        command,
-        cwd=cwd,
-        env=env,
-        capture_output=True,
-        text=True,
-        stdin=subprocess.DEVNULL,
-        timeout=60,
-    )
 
 
 @choices
@@ -227,13 +194,7 @@ def test_bumpversion(
     assert config["commit"] == config["tag"] == (use_devcontainer == "yes")
 
     # bump-my-version refuses to run in a dirty or missing repository.
-    for command in (
-        ["git", "init", "--quiet", "--initial-branch=main"],
-        ["git", "add", "--all"],
-        ["git", "commit", "--quiet", "--no-verify", "--message", "Initial"],
-    ):
-        setup = run_isolated(command, cwd=project)
-        assert setup.returncode == 0, setup.stderr
+    git_commit_all(project)
     result = run_isolated(
         [sys.executable, "-m", "bumpversion", "bump", "--dry-run", "patch"],
         cwd=project,
@@ -397,3 +358,21 @@ def test_docs_automodule_targets_exist(baked: Baked) -> None:
         assert (path / "__init__.py").is_file() or path.with_suffix(
             ".py"
         ).is_file(), target
+
+
+def test_ruff_pins_in_sync(baked: Baked) -> None:
+    project = baked()
+    hooks = load_yaml(project / ".pre-commit-config.yaml")["repos"]
+    (ruff_hooks,) = [
+        repo for repo in hooks if repo["repo"].endswith("/ruff-pre-commit")
+    ]
+    dev = load_toml(project / "pyproject.toml")["dependency-groups"]["dev"]
+    (generated_pin,) = [dep for dep in dev if dep.startswith("ruff==")]
+    root = load_toml(REPO_ROOT / "pyproject.toml")
+    root_pin = root["tool"]["poetry"]["group"]["dev"]["dependencies"]["ruff"]
+
+    assert (
+        ruff_hooks["rev"].removeprefix("v")
+        == generated_pin.removeprefix("ruff==")
+        == root_pin
+    )
