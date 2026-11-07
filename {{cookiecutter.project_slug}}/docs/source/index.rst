@@ -8,3 +8,4 @@ Welcome to {{cookiecutter.project_slug}}'s documentation!
    :maxdepth: 2
 
    {{cookiecutter.project_slug}}
+   changes
