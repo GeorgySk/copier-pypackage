@@ -10,5 +10,10 @@
   "poetry_version": "2.1.4",
   "python_version": "3.10",
   "use_devcontainer": ["yes", "no"],
-  "use_docker_compose": ["yes", "no"]
+  "use_docker_compose": ["yes", "no"],
+  "ci_provider": ["github", "gitlab", "both", "none"],
+  "__prompts__": {
+    "github_username": "GitHub/GitLab username or group (repository namespace)",
+    "ci_provider": "CI/CD provider"
+  }
 }
