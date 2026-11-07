@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "cookiecutter-pyproject"
-version = "0.19.0"
+version = "0.20.0"
 description = ""
 authors = [
     { name = "Georgy Skorobogatov", email = "skorobogatovgeorgy+github@gmail.com" },
@@ -22,9 +22,32 @@ pytest = "^9.2.0"
 pytest-cov = "^7.1.0"
 # fixed for easier way to reproduce across various machines
 hypothesis = "^6.168.5"
+check-jsonschema = {version = "^0.39.0", python = ">=3.11"}
+actionlint-py = "^1.7.12.25"
+pyyaml = "^6.0.3"
 
-[tool.coverage.run]
-source = ["hooks"]
+# Same rules as the generated project's [tool.ruff]
+[tool.ruff]
+line-length = 79
+src = [".", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "B", "I"]
 
 [tool.pytest.ini_options]
 addopts = "--verbose -s --hypothesis-profile=default"
+testpaths = ["tests"]
+# pytest's defaults plus the template directory: the template's own tests/
+# contains Jinja and must not be collected here
+norecursedirs = [
+    "*.egg",
+    ".*",
+    "_darcs",
+    "build",
+    "CVS",
+    "dist",
+    "node_modules",
+    "venv",
+    "{arch}",
+    "{{cookiecutter.project_slug}}",
+]
