@@ -48,6 +48,15 @@ test:
         coverage_format: cobertura
         path: coverage.xml
 
+# In the test stage, so broken docs block publishing.
+docs:
+  image: python:$PYTHON_VERSION
+  stage: test
+  script:
+    - pip install "poetry==${POETRY_VERSION}"
+    - poetry install --with docs
+    - poetry run sphinx-build -W --keep-going -b html docs/source docs/build/html
+
 build:
   image: python:$PYTHON_VERSION
   stage: build
