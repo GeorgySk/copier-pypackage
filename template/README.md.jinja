@@ -231,3 +231,20 @@ Copier merges the template's changes into the project and keeps yours.
 Review them with `git diff`, resolve any conflict markers and commit.
 `CHANGES.rst` and `{{ project_slug }}/__init__.py` are never touched by
 updates, and `.copier-answers.yml` must not be edited by hand.
+{%- if ci_provider in ['github', 'both'] %}
+
+The `Template update` workflow (`.github/workflows/template-update.yml`) does
+this every Monday and opens a pull request when there is a new template
+release (run it by hand from the Actions tab). Conflicting changes are
+committed with conflict markers in a draft pull request: resolve them on its
+branch. There is one pull request per release, so closing one skips that
+release. The template must be at a URL GitHub can clone (the `_src_path` in
+`.copier-answers.yml`).
+
+With the default `GITHUB_TOKEN`, enable "Allow GitHub Actions to create and
+approve pull requests" (Settings → Actions → General). Even then the pull
+request doesn't run CI, and updates that change `.github/workflows` can't be
+pushed. To avoid both, add a `TEMPLATE_UPDATE_TOKEN` repository secret: a
+fine-grained personal access token for this repository with read and write
+access to Contents, Pull requests and Workflows.
+{%- endif %}
