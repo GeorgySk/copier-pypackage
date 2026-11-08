@@ -3,6 +3,9 @@ copier-pypackage
 
 [![CI](https://github.com/GeorgySk/copier-pypackage/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/GeorgySk/copier-pypackage/actions/workflows/ci.yml "CI")
 [![](https://img.shields.io/github/license/GeorgySk/copier-pypackage.svg)](https://github.com/GeorgySk/copier-pypackage/blob/main/LICENSE "License")
+[![](https://img.shields.io/github/v/tag/GeorgySk/copier-pypackage?sort=semver&label=release)](https://github.com/GeorgySk/copier-pypackage/tags "Latest release")
+[![](https://img.shields.io/badge/python-3.11%20%E2%80%93%203.14-blue.svg)](https://github.com/GeorgySk/copier-pypackage/blob/main/copier.yml "Supported Python versions of generated projects")
+[![](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/copier-org/copier/master/img/badge/badge-grayscale-inverted-border-orange.json)](https://copier.readthedocs.io "Copier template")
 
 Summary
 -------
