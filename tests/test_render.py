@@ -400,3 +400,23 @@ def test_package_is_typed(baked: Baked) -> None:
     assert (project / project.name / "py.typed").is_file()
     config = load_toml(project / "pyproject.toml")
     assert config["tool"]["mypy"]["strict"] is True
+
+
+def test_poetry_versions_in_sync() -> None:
+    # The template's default for generated projects and the template repo's
+    # own environment (.env for Docker and CI, the dev container) use the
+    # same Poetry, so the template is developed with what it generates.
+    default = load_json(REPO_ROOT / "cookiecutter.json")["poetry_version"]
+    env = dict(
+        line.split("=", 1)
+        for line in (REPO_ROOT / ".env").read_text().splitlines()
+        if line.startswith("POETRY_VERSION=")
+    )
+    devcontainer = load_json(REPO_ROOT / ".devcontainer" / "devcontainer.json")
+    (poetry_feature,) = [
+        options
+        for feature, options in devcontainer["features"].items()
+        if "/poetry:" in feature
+    ]
+
+    assert default == env["POETRY_VERSION"] == poetry_feature["version"]

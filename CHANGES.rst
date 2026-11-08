@@ -8,6 +8,16 @@ and this project adheres to `Semantic Versioning <https://semver.org/>`_.
 Unreleased
 ----------
 
+0.25.1 (2026-11-08)
+------------------------------
+
+Changed
+~~~~~~~
+
+- The default ``poetry_version`` for generated projects is now 2.5.1
+  (was 2.1.4). The template's own Docker image and dev container use Poetry
+  2.5.1 as well (was 2.3.1).
+
 0.25.0 (2026-11-07)
 ------------------------------
 
