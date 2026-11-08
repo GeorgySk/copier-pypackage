@@ -7,7 +7,7 @@
   "project_short_description": "",
   "version": "0.1.0",
   "open_source_license": ["MIT license", "BSD license", "ISC license", "Apache Software License 2.0", "GNU General Public License v3", "Not open source"],
-  "poetry_version": "2.1.4",
+  "poetry_version": "2.5.1",
   "python_version": ["3.11", "3.12", "3.13", "3.14"],
   "use_devcontainer": ["yes", "no"],
   "use_docker_compose": ["yes", "no"],
