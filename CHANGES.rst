@@ -8,6 +8,14 @@ and this project adheres to `Semantic Versioning <https://semver.org/>`_.
 Unreleased
 ----------
 
+Fixed
+~~~~~
+
+- The dev container's ``setup_user.sh`` failed when the container user
+  already had the workspace owner's uid and gid (the dev container CLI sets
+  them on Linux), or when a group with that gid already existed. It now
+  changes only what differs and reuses existing groups.
+
 0.26.0 (2026-11-08)
 ------------------------------
 
