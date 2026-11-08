@@ -1,0 +1,111 @@
+# Copier template configuration: settings first (keys starting with "_"),
+# then the questions, in the order they are asked.
+
+_min_copier_version: "9.10.0"
+# Only template/ is rendered; the repository root holds the tooling that
+# develops and tests the template.
+_subdirectory: template
+# Files the user owns once the project exists: `copier update` never
+# touches them (they are still created by `copier copy`).
+_skip_if_exists:
+  - CHANGES.rst
+  - "{{ project_slug }}/__init__.py"
+  - tests/strategies/__init__.py
+_message_after_copy: |
+  Created {{ project_name }} in {{ _copier_conf.dst_path }}.
+
+  Next steps:
+    cd {{ _copier_conf.dst_path }}
+    git init && git add --all && git commit -m "Initial commit"
+
+  Later, pull in template updates with `copier update` (commit first).
+
+full_name:
+  type: str
+  help: Your full name
+  default: Georgy Skorobogatov
+
+email:
+  type: str
+  help: Your email
+  default: skorobogatovgeorgy+github@gmail.com
+
+github_username:
+  type: str
+  help: GitHub/GitLab username or group (repository namespace)
+  default: GeorgySk
+
+project_name:
+  type: str
+  help: Project name
+  default: Python Boilerplate
+
+project_slug:
+  type: str
+  help: Package name (importable and used on PyPI)
+  default: "{{ project_name.lower().replace(' ', '_').replace('-', '_') }}"
+  # Importable as a package and valid as a PyPI project name. Copier asks
+  # again when the answer is invalid.
+  validator: >-
+    {%- if not (project_slug | regex_search('^[a-z_][a-z0-9_]*\\Z'))
+    or project_slug in ['and', 'as', 'assert', 'async', 'await', 'break',
+    'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'finally',
+    'for', 'from', 'global', 'if', 'import', 'in', 'is', 'lambda',
+    'nonlocal', 'not', 'or', 'pass', 'raise', 'return', 'try', 'while',
+    'with', 'yield'] -%}
+    project_slug '{{ project_slug }}' is not a valid package name. Use
+    lowercase ASCII letters, digits and underscores, don't start with a
+    digit and don't use a Python keyword (for example 'my_package').
+    {%- endif %}
+
+project_short_description:
+  type: str
+  help: Short description of the project
+  default: ""
+
+version:
+  type: str
+  help: Initial version
+  default: 0.1.0
+
+open_source_license:
+  type: str
+  help: License
+  choices:
+    - MIT license
+    - BSD license
+    - ISC license
+    - Apache Software License 2.0
+    - GNU General Public License v3
+    - Not open source
+  default: MIT license
+
+# Not asked and not stored in .copier-answers.yml, so `copier update` always
+# brings in the template's current Poetry version. Keep in sync with
+# POETRY_VERSION in the root .env (test_poetry_versions_in_sync).
+poetry_version:
+  type: str
+  default: 2.5.1
+  when: false
+
+python_version:
+  type: str
+  help: Minimum supported Python version
+  choices: ["3.11", "3.12", "3.13", "3.14"]
+  default: "3.11"
+
+use_devcontainer:
+  type: bool
+  help: Add a dev container configuration?
+  default: true
+
+use_docker_compose:
+  type: bool
+  help: Add a Dockerfile and Docker Compose configuration?
+  default: true
+
+ci_provider:
+  type: str
+  help: CI/CD provider
+  choices: [github, gitlab, both, none]
+  default: github

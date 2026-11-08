@@ -1,0 +1,31 @@
+{
+  "name": "{{ project_slug }}",
+{%- if use_docker_compose %}
+  "dockerComposeFile": ["../compose.yaml", "compose.devcontainer.yaml"],
+  "service": "{{ project_slug }}",
+  "overrideCommand": true,
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {}
+  },
+  "workspaceFolder": "/opt/{{ project_slug }}",
+{%- else %}
+  "image": "python:{{ python_version }}-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {},
+    "ghcr.io/devcontainers-extra/features/poetry:2": {
+      "version": "{{ poetry_version }}"
+    }
+  },
+  "workspaceFolder": "/opt/{{ project_slug }}",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/opt/{{ project_slug }},type=bind,consistency=cached",
+  "runArgs": ["--runtime=runc"],
+  "postCreateCommand": "poetry config virtualenvs.create false && poetry install --with dev --no-root",
+{%- endif %}
+  "onCreateCommand": "bash /opt/{{ project_slug }}/.devcontainer/setup_user.sh",
+  "remoteUser": "vscode",
+  "customizations": {
+    "vscode": {
+      "extensions": ["charliermarsh.ruff"]
+    }
+  }
+}

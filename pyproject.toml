@@ -3,8 +3,8 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [project]
-name = "cookiecutter-pyproject"
-version = "0.26.0"
+name = "copier-pypackage"
+version = "0.27.0"
 description = ""
 authors = [
     { name = "Georgy Skorobogatov", email = "skorobogatovgeorgy+github@gmail.com" },
@@ -13,7 +13,7 @@ readme = "README.md"
 license-files = ["LICENSE"]
 requires-python = ">=3.11,<4.0"
 dependencies = [
-    "cookiecutter (>=2.6.0,<3.0.0)"
+    "copier (>=9.10.0,<10.0.0)"
 ]
 
 [tool.poetry.group.dev.dependencies]
@@ -33,23 +33,16 @@ types-pyyaml = "^6.0.12"
 [tool.ruff]
 line-length = 79
 src = [".", "tests"]
-# The generated project's Jinja-templated files don't parse. The brackets
-# escape the braces, which globs would otherwise treat as alternation.
-extend-exclude = ["[{][{]cookiecutter.project_slug[}][}]"]
+# The generated project's Jinja-templated files don't parse.
+extend-exclude = ["template"]
 
 [tool.ruff.lint]
 select = ["E", "W", "F", "B", "I"]
 
-# Same strictness as the generated project's [tool.mypy]. hooks/ is left
-# out: its files are Jinja templates.
+# Same strictness as the generated project's [tool.mypy].
 [tool.mypy]
 strict = true
-files = ["tests", "local_extensions.py"]
-
-# cookiecutter ships no type information (no py.typed).
-[[tool.mypy.overrides]]
-module = ["cookiecutter.*"]
-ignore_missing_imports = true
+files = ["tests"]
 
 [tool.pytest.ini_options]
 # Tooling tests need network and take minutes: run them with -m tooling
@@ -59,7 +52,7 @@ markers = [
 ]
 testpaths = ["tests"]
 # pytest's defaults plus the template directory: the template's own tests/
-# contains Jinja and must not be collected here
+# belong to the generated project and must not be collected here
 norecursedirs = [
     "*.egg",
     ".*",
@@ -70,5 +63,5 @@ norecursedirs = [
     "node_modules",
     "venv",
     "{arch}",
-    "{{cookiecutter.project_slug}}",
+    "template",
 ]

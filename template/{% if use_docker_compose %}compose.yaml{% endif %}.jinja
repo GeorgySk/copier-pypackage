@@ -1,13 +1,13 @@
 services:
-  {{cookiecutter.project_slug}}:
+  {{project_slug}}:
     build:
       context: .
       args:
         - PYTHON_IMAGE_VERSION=${PYTHON_IMAGE_VERSION}
         - POETRY_VERSION=${POETRY_VERSION}
         - IMAGE_TYPE=${IMAGE_TYPE}
-    image: {{ cookiecutter.github_username.lower() }}/{{cookiecutter.project_slug}}:{{cookiecutter.version}}
+    image: {{ github_username.lower() }}/{{project_slug}}:{{version}}
     volumes:
-      - .:/opt/{{cookiecutter.project_slug}}
+      - .:/opt/{{project_slug}}
     stdin_open: true
     tty: true

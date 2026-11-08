@@ -9,6 +9,11 @@ uid=$(stat -c '%u' "$(pwd)")
 gid=$(stat -c '%g' "$(pwd)")
 user=$(whoami)
 
+# Never change root's ids: another user (vscode) may already own them.
+if [ "$user" = root ]; then
+    exit 0
+fi
+
 # Root-owned workspace (Docker Desktop on Windows): nothing to match.
 if [ "$uid" -eq 0 ] && [ "$gid" -eq 0 ]; then
     exit 0

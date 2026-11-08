@@ -1,79 +1,85 @@
-cookiecutter-pypackage
-===========
+copier-pypackage
+================
 
-[![CI](https://github.com/GeorgySk/cookiecutter-pypackage/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/GeorgySk/cookiecutter-pypackage/actions/workflows/ci.yml "CI")
-[![](https://img.shields.io/github/license/GeorgySk/cookiecutter-pypackage.svg)](https://github.com/GeorgySk/cookiecutter-pypackage/blob/main/LICENSE "License")
+[![CI](https://github.com/GeorgySk/copier-pypackage/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/GeorgySk/copier-pypackage/actions/workflows/ci.yml "CI")
+[![](https://img.shields.io/github/license/GeorgySk/copier-pypackage.svg)](https://github.com/GeorgySk/copier-pypackage/blob/main/LICENSE "License")
 
 Summary
 -------
 
-Cookiecutter-pypackage is a Cookiecutter template for developing a Python library using such tools as Docker, Poetry, bump-my-version, pytest, pytest-cov, and Hypothesis library for testing.
+Copier-pypackage is a [Copier](https://copier.readthedocs.io) template for developing a Python library using such tools as Docker, Poetry, bump-my-version, pytest, pytest-cov, and Hypothesis library for testing.
+
+Projects generated from it can later pull in improvements to the template with `copier update`.
 
 Usage
 ------------
 
-### Without Docker
+### Generate a project
 
-1. [Install Cookiecutter](https://github.com/cookiecutter/cookiecutter?tab=readme-ov-file#installation)
-
-2. Clone the current repository
+1. [Install Copier](https://copier.readthedocs.io/en/stable/#installation),
+   for example with
     ```shell
-    git clone https://github.com/GeorgySk/cookiecutter-pypackage.git
-    cd cookiecutter-pypackage
-    ```
-3. Generate your project with Cookiecutter
-    ```shell
-    cookiecutter .
+    pipx install copier
     ```
 
-### With dev container
-1. Clone the current repository
+2. Generate your project, answering the questions
     ```shell
-    git clone https://github.com/GeorgySk/cookiecutter-pypackage.git
-   ```
-2. Open the project with IDE that supports dev containers such as VS Code or PyCharm.
-3. Launch the dev container from _.devcontainer/devcontainer.json_
-4. Generate your project with Cookiecutter
-   ```shell
-   cookiecutter .
-   ```
+    copier copy gh:GeorgySk/copier-pypackage my_project
+    ```
+   This uses the latest released version of the template; add
+   `--vcs-ref=main` for the development version.
+
+3. Put the project under version control
+    ```shell
+    cd my_project
+    git init
+    git add --all
+    git commit -m "Initial commit"
+    ```
+
+Always generate from the repository URL (not from a local clone or a copy
+of the files): the URL and the template version are recorded in the
+project's `.copier-answers.yml`, which `copier update` needs.
+
+### Update a project
+
+When a new version of the template is released, run inside the project,
+with all changes committed:
+```shell
+copier update --defaults
+```
+Copier re-applies the template with your recorded answers and merges the
+changes between the template versions into your project, keeping your own
+changes. Review the result with `git diff`, resolve any conflict markers,
+and commit. Leave out `--defaults` to be asked the questions again (to
+change an answer, such as the CI provider).
+
+Never edit `.copier-answers.yml` by hand.
 
 ### With Docker
 1. Clone the current repository
     ```shell
-    git clone https://github.com/GeorgySk/cookiecutter-pypackage.git
-    cd cookiecutter-pypackage
+    git clone https://github.com/GeorgySk/copier-pypackage.git
+    cd copier-pypackage
     ```
 2. Build the image
     ```shell
     docker compose build
     ```
-3. Check your uid and gid which we will use later
-to change ownership of the generated project
+3. Generate the project into the mounted repository directory, then move
+   it out. Running as your own user keeps the files yours.
     ```shell
-    id -u
-    id -g
-    ```
-4. Connect to terminal inside container
-    ```shell
-    docker compose run cookiecutter-pypackage bash
-    ```
-5. Generate the project
-    ```shell
-    cookicutter .
-    ```
-6. Change ownership of the project using the 
-previously obtained uid and gid
-    ```shell
-    chown -R <your_uid>:<your_gid> <newly_generated_folder_with_project> 
-    ```
-7. Exit the container
-    ```shell
-    exit
+    docker compose run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp copier-pypackage \
+        copier copy gh:GeorgySk/copier-pypackage my_project
+    mv my_project ..
     ```
 
 Development
 -----------
+
+Open the repository in its dev container (`.devcontainer/devcontainer.json`)
+or install the dependencies with
+`poetry install --with dev --no-root`, then run the tests with `pytest`.
 
 ### Bumping version
 
@@ -114,4 +120,11 @@ Bump version
 bump-my-version bump --verbose release
 ```
 
-This will set version to `major.minor.patch`.
+This will set version to `major.minor.patch`, commit the change and tag it
+`vmajor.minor.patch`. Push the tag:
+```bash
+git push --follow-tags
+```
+
+`copier copy` and `copier update` use the latest such tag, so a template
+change reaches users only once it is released.

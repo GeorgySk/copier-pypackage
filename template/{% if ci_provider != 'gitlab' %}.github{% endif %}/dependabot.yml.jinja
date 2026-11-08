@@ -8,14 +8,14 @@ updates:
     groups:
       python-minor-patch:
         update-types: ["minor", "patch"]
-{%- if cookiecutter.use_devcontainer == "yes" %}
+{%- if use_devcontainer %}
   # .devcontainer/devcontainer.json
   - package-ecosystem: "devcontainers"
     directory: "/"
     schedule:
       interval: "weekly"
 {%- endif %}
-{%- if cookiecutter.ci_provider in ["github", "both"] %}
+{%- if ci_provider in ["github", "both"] %}
   # .github/workflows/*.yml
   - package-ecosystem: "github-actions"
     directory: "/"

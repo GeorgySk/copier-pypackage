@@ -14,10 +14,9 @@ from pathlib import Path
 import pytest
 
 from helpers import (
-    REPO_ROOT,
+    DEFAULTS,
     bake,
     git_commit_all,
-    load_json,
     run_isolated,
 )
 
@@ -66,12 +65,12 @@ class Project:
 def project(
     request: pytest.FixtureRequest,
     tmp_path_factory: pytest.TempPathFactory,
-    cookiecutter_config: Path,
+    template_dir: Path,
 ) -> Project:
     context = CASES[request.param]
     path = bake(
         tmp_path_factory.mktemp(f"tooling-{request.param}"),
-        cookiecutter_config,
+        template_dir,
         **context,
     )
     # pre-commit only runs inside a git repository.
@@ -154,8 +153,7 @@ def test_build(project: Project, tmp_path: Path) -> None:
     )
     assert metadata["Name"] == slug
     assert metadata["Requires-Python"] == ">=3.11,<4.0"
-    defaults = load_json(REPO_ROOT / "cookiecutter.json")
-    expected = defaults | project.context
+    expected = DEFAULTS | project.context
     assert metadata["Author"] == expected["full_name"]
     assert metadata["Author-email"] == expected["email"]
 

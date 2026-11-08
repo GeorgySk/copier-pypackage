@@ -12,11 +12,13 @@ from typing import Any
 import pytest
 
 from helpers import (
+    ANSWERS_FILE,
+    BOOLS,
     CI_PROVIDERS,
+    DEFAULTS,
     LICENSES,
     PYTHON_VERSIONS,
     REPO_ROOT,
-    YES_NO,
     dependabot_ecosystems,
     git_commit_all,
     github_jobs,
@@ -34,8 +36,8 @@ choices = pytest.mark.parametrize(
     [
         (ci_provider, use_docker_compose, use_devcontainer)
         for ci_provider in CI_PROVIDERS
-        for use_docker_compose in YES_NO
-        for use_devcontainer in YES_NO
+        for use_docker_compose in BOOLS
+        for use_devcontainer in BOOLS
     ],
 )
 ci_choices = pytest.mark.parametrize(
@@ -43,7 +45,7 @@ ci_choices = pytest.mark.parametrize(
     [
         (ci_provider, use_docker_compose)
         for ci_provider in ["github", "gitlab", "both"]
-        for use_docker_compose in YES_NO
+        for use_docker_compose in BOOLS
     ],
 )
 
@@ -63,8 +65,8 @@ def project_files(project: Path) -> list[Path]:
 def test_files_match_choices(
     baked: Baked,
     ci_provider: str,
-    use_docker_compose: str,
-    use_devcontainer: str,
+    use_docker_compose: bool,
+    use_devcontainer: bool,
 ) -> None:
     project = baked(
         ci_provider=ci_provider,
@@ -72,15 +74,15 @@ def test_files_match_choices(
         use_devcontainer=use_devcontainer,
     )
 
-    assert (project / ".devcontainer").is_dir() == (use_devcontainer == "yes")
+    assert (project / ".devcontainer").is_dir() == use_devcontainer
     devcontainer_compose = (
         project / ".devcontainer" / "compose.devcontainer.yaml"
     )
     assert devcontainer_compose.is_file() == (
-        use_devcontainer == use_docker_compose == "yes"
+        use_devcontainer and use_docker_compose
     )
     for name in ("Dockerfile", "compose.yaml", ".env"):
-        assert (project / name).is_file() == (use_docker_compose == "yes")
+        assert (project / name).is_file() == use_docker_compose
     assert (project / ".github" / "workflows" / "ci.yml").is_file() == (
         ci_provider in ("github", "both")
     )
@@ -94,8 +96,8 @@ def test_files_match_choices(
 def test_dependabot_ecosystems(
     baked: Baked,
     ci_provider: str,
-    use_docker_compose: str,
-    use_devcontainer: str,
+    use_docker_compose: bool,
+    use_devcontainer: bool,
 ) -> None:
     if ci_provider == "gitlab":
         pytest.skip("no .github/ for GitLab projects")
@@ -106,7 +108,7 @@ def test_dependabot_ecosystems(
     )
 
     expected = {"pip"}
-    if use_devcontainer == "yes":
+    if use_devcontainer:
         expected.add("devcontainers")
     if ci_provider in ("github", "both"):
         expected.add("github-actions")
@@ -117,8 +119,8 @@ def test_dependabot_ecosystems(
 def test_ci_jobs(
     baked: Baked,
     ci_provider: str,
-    use_docker_compose: str,
-    use_devcontainer: str,
+    use_docker_compose: bool,
+    use_devcontainer: bool,
 ) -> None:
     project = baked(
         ci_provider=ci_provider,
@@ -126,7 +128,7 @@ def test_ci_jobs(
         use_devcontainer=use_devcontainer,
     )
     common = {"lint", "test", "build", "docs"}
-    docker = {"publish-docker"} if use_docker_compose == "yes" else set()
+    docker = {"publish-docker"} if use_docker_compose else set()
 
     if ci_provider in ("github", "both"):
         assert github_jobs(project) == common | {"publish-pypi"} | docker
@@ -140,8 +142,8 @@ def test_ci_jobs(
 def test_no_unrendered_jinja(
     baked: Baked,
     ci_provider: str,
-    use_docker_compose: str,
-    use_devcontainer: str,
+    use_docker_compose: bool,
+    use_devcontainer: bool,
 ) -> None:
     project = baked(
         ci_provider=ci_provider,
@@ -161,8 +163,8 @@ def test_no_unrendered_jinja(
 def test_config_files_parse(
     baked: Baked,
     ci_provider: str,
-    use_docker_compose: str,
-    use_devcontainer: str,
+    use_docker_compose: bool,
+    use_devcontainer: bool,
 ) -> None:
     project = baked(
         ci_provider=ci_provider,
@@ -186,8 +188,8 @@ def test_bumpversion(
     baked: Baked,
     tmp_path: Path,
     ci_provider: str,
-    use_docker_compose: str,
-    use_devcontainer: str,
+    use_docker_compose: bool,
+    use_devcontainer: bool,
 ) -> None:
     project = shutil.copytree(
         baked(
@@ -198,7 +200,7 @@ def test_bumpversion(
         tmp_path / "project",
     )
     config = load_toml(project / ".bumpversion.toml")["tool"]["bumpversion"]
-    assert config["commit"] == config["tag"] == (use_devcontainer == "yes")
+    assert config["commit"] == config["tag"] == use_devcontainer
 
     # bump-my-version refuses to run in a dirty or missing repository.
     git_commit_all(project)
@@ -211,7 +213,7 @@ def test_bumpversion(
 
 @ci_choices
 def test_ci_schemas(
-    baked: Baked, ci_provider: str, use_docker_compose: str
+    baked: Baked, ci_provider: str, use_docker_compose: bool
 ) -> None:
     if shutil.which("check-jsonschema") is None:
         pytest.skip("check-jsonschema is not installed")
@@ -237,7 +239,7 @@ def test_ci_schemas(
 
 @ci_choices
 def test_actionlint(
-    baked: Baked, ci_provider: str, use_docker_compose: str
+    baked: Baked, ci_provider: str, use_docker_compose: bool
 ) -> None:
     if ci_provider == "gitlab":
         pytest.skip("no GitHub workflow")
@@ -339,7 +341,7 @@ def test_readme_links(baked: Baked, ci_provider: str) -> None:
 
 
 def test_devcontainer_setup_script_exists(baked: Baked) -> None:
-    project = baked(use_devcontainer="yes", project_name="Demo Lib")
+    project = baked(use_devcontainer=True, project_name="Demo Lib")
     config = load_json(project / ".devcontainer" / "devcontainer.json")
     workspace = config["workspaceFolder"]
 
@@ -387,7 +389,7 @@ def test_ruff_pins_in_sync(baked: Baked) -> None:
 
 @ci_choices
 def test_lint_job_type_checks(
-    baked: Baked, ci_provider: str, use_docker_compose: str
+    baked: Baked, ci_provider: str, use_docker_compose: bool
 ) -> None:
     project = baked(
         ci_provider=ci_provider, use_docker_compose=use_docker_compose
@@ -413,7 +415,7 @@ def test_poetry_versions_in_sync() -> None:
     # The template's default for generated projects and the template repo's
     # own environment (.env, used by Docker, CI and the dev container) use
     # the same Poetry, so the template is developed with what it generates.
-    default = load_json(REPO_ROOT / "cookiecutter.json")["poetry_version"]
+    default = DEFAULTS["poetry_version"]
     env = dict(
         line.split("=", 1)
         for line in (REPO_ROOT / ".env").read_text().splitlines()
@@ -462,10 +464,10 @@ def assert_devcontainer_runs_compose(project: Path) -> None:
 def test_devcontainer_environment(
     baked: Baked,
     ci_provider: str,
-    use_docker_compose: str,
-    use_devcontainer: str,
+    use_docker_compose: bool,
+    use_devcontainer: bool,
 ) -> None:
-    if use_devcontainer != "yes":
+    if not use_devcontainer:
         pytest.skip("no dev container")
     project = baked(
         ci_provider=ci_provider,
@@ -473,18 +475,55 @@ def test_devcontainer_environment(
         use_devcontainer=use_devcontainer,
     )
 
-    if use_docker_compose == "yes":
+    if use_docker_compose:
         assert_devcontainer_runs_compose(project)
         return
     # Without Docker Compose the dev container is the only definition.
     config = load_json(project / ".devcontainer" / "devcontainer.json")
-    defaults = load_json(REPO_ROOT / "cookiecutter.json")
-    assert (
-        config["image"] == f"python:{defaults['python_version'][0]}-bookworm"
-    )
+    assert config["image"] == f"python:{DEFAULTS['python_version']}-bookworm"
     (poetry_feature,) = poetry_features(config)
-    assert poetry_feature["version"] == defaults["poetry_version"]
+    assert poetry_feature["version"] == DEFAULTS["poetry_version"]
 
 
 def test_root_devcontainer_runs_compose() -> None:
     assert_devcontainer_runs_compose(REPO_ROOT)
+
+
+@pytest.mark.parametrize("use_docker_compose", BOOLS)
+def test_devcontainer_remote_user(
+    baked: Baked, use_docker_compose: bool
+) -> None:
+    # ${localEnv:USER} is empty on Windows hosts (it has USERNAME), which
+    # left setup_user.sh running as root; use the common-utils user.
+    project = baked(
+        use_docker_compose=use_docker_compose, use_devcontainer=True
+    )
+    for root in (project, REPO_ROOT):
+        config = load_json(root / ".devcontainer" / "devcontainer.json")
+        assert config["remoteUser"] == "vscode"
+
+
+@choices
+def test_answers_file(
+    baked: Baked,
+    ci_provider: str,
+    use_docker_compose: bool,
+    use_devcontainer: bool,
+) -> None:
+    # `copier update` re-renders the project from these answers.
+    context = {
+        "ci_provider": ci_provider,
+        "use_docker_compose": use_docker_compose,
+        "use_devcontainer": use_devcontainer,
+    }
+    project = baked(**context)
+    answers = load_yaml(project / ANSWERS_FILE)
+
+    assert answers["_src_path"]
+    expected = DEFAULTS | context | {"project_slug": project.name}
+    # Not asked, so not recorded: an update brings in the current default.
+    del expected["poetry_version"]
+    recorded = {
+        key: value for key, value in answers.items() if not key.startswith("_")
+    }
+    assert recorded == expected
