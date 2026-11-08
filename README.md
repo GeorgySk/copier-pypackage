@@ -56,6 +56,34 @@ change an answer, such as the CI provider).
 
 Never edit `.copier-answers.yml` by hand.
 
+#### Automatic updates
+
+Projects generated with GitHub Actions (CI provider `github` or `both`)
+include a `Template update` workflow
+(`.github/workflows/template-update.yml`). Every Monday, or when run by
+hand from the Actions tab, it runs `copier update --defaults` and, if there
+is a new template release, opens a pull request with the changes:
+
+- There is one pull request per release (branch
+  `template-update/<version>`). Closing it without merging skips that
+  release; the next release gets a new pull request.
+- If the update conflicts with your changes, the pull request is opened as
+  a draft with the conflict markers committed. Resolve them on its branch.
+- The project must have been generated from a URL GitHub can clone (the
+  `_src_path` in `.copier-answers.yml`).
+
+By default the workflow uses `GITHUB_TOKEN`, which needs "Allow GitHub
+Actions to create and approve pull requests" enabled (Settings → Actions →
+General). Pull requests opened with it don't run CI, and updates that
+change files in `.github/workflows` can't be pushed. To avoid both, add a
+`TEMPLATE_UPDATE_TOKEN` repository secret: a fine-grained personal access
+token for the repository with read and write access to Contents, Pull
+requests and Workflows. The generated project's `README.md` repeats these
+steps.
+
+GitLab-only projects don't get the workflow; update them with
+`copier update` as above.
+
 ### With Docker
 1. Clone the current repository
     ```shell
