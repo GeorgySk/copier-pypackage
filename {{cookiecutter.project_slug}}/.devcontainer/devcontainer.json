@@ -1,5 +1,14 @@
 {
   "name": "{{ cookiecutter.project_slug }}",
+{%- if cookiecutter.use_docker_compose == "yes" %}
+  "dockerComposeFile": ["../compose.yaml", "compose.devcontainer.yaml"],
+  "service": "{{ cookiecutter.project_slug }}",
+  "overrideCommand": true,
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {}
+  },
+  "workspaceFolder": "/opt/{{ cookiecutter.project_slug }}",
+{%- else %}
   "image": "python:{{ cookiecutter.python_version }}-bookworm",
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {},
@@ -10,8 +19,9 @@
   "workspaceFolder": "/opt/{{ cookiecutter.project_slug }}",
   "workspaceMount": "source=${localWorkspaceFolder},target=/opt/{{ cookiecutter.project_slug }},type=bind,consistency=cached",
   "runArgs": ["--runtime=runc"],
-  "onCreateCommand": "bash /opt/{{ cookiecutter.project_slug }}/.devcontainer/setup_user.sh",
   "postCreateCommand": "poetry config virtualenvs.create false && poetry install --with dev --no-root",
+{%- endif %}
+  "onCreateCommand": "bash /opt/{{ cookiecutter.project_slug }}/.devcontainer/setup_user.sh",
   "remoteUser": "${localEnv:USER}",
   "customizations": {
     "vscode": {

@@ -8,6 +8,18 @@ and this project adheres to `Semantic Versioning <https://semver.org/>`_.
 Unreleased
 ----------
 
+Changed
+~~~~~~~
+
+- With ``use_devcontainer=yes`` and ``use_docker_compose=yes``, the
+  generated dev container now runs the ``compose.yaml`` service (the
+  ``Dockerfile``'s ``dev`` stage) instead of a separate image with the
+  Poetry feature, so Python and Poetry versions are set only in ``.env``.
+  Dependencies are installed when the image is built; rebuild the container
+  or run ``poetry install`` after changing them.
+- The template's own dev container works the same way and takes its Python
+  and Poetry versions from ``.env``.
+
 0.25.2 (2026-11-08)
 ------------------------------
 

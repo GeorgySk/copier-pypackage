@@ -93,3 +93,15 @@ jobs:
         run: docker compose build
         env:
           IMAGE_TYPE: ${{ matrix.image-type }}
+
+  # Builds and starts the dev container (compose.yaml + the Dockerfile's dev
+  # stage) and checks that Poetry and the dev dependencies are there.
+  devcontainer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: devcontainers/ci@v0.3
+        with:
+          imageName: cookiecutter-pypackage-devcontainer
+          push: never
+          runCmd: poetry --version && python -m pytest --collect-only -q

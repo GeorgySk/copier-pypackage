@@ -14,6 +14,8 @@ log.debug("use_docker_compose = %s", use_docker_compose)
 log.debug("ci_provider = %s", ci_provider)
 
 devcontainer_dir = Path(".devcontainer")
+# Runs the dev container through compose.yaml, which is removed without Docker.
+devcontainer_compose_file = devcontainer_dir / "compose.devcontainer.yaml"
 dockerfile = Path("Dockerfile")
 compose_file = Path("compose.yaml")
 env_file = Path(".env")  # only holds Docker build args
@@ -37,7 +39,12 @@ if use_devcontainer != "yes":
     remove(devcontainer_dir)
 
 if use_docker_compose != "yes":
-    for path in (dockerfile, compose_file, env_file):
+    for path in (
+        dockerfile,
+        compose_file,
+        env_file,
+        devcontainer_compose_file,
+    ):
         remove(path)
 
 if ci_provider == "github":

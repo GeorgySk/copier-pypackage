@@ -7,6 +7,7 @@ import subprocess
 import sys
 from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -72,6 +73,12 @@ def test_files_match_choices(
     )
 
     assert (project / ".devcontainer").is_dir() == (use_devcontainer == "yes")
+    devcontainer_compose = (
+        project / ".devcontainer" / "compose.devcontainer.yaml"
+    )
+    assert devcontainer_compose.is_file() == (
+        use_devcontainer == use_docker_compose == "yes"
+    )
     for name in ("Dockerfile", "compose.yaml", ".env"):
         assert (project / name).is_file() == (use_docker_compose == "yes")
     assert (project / ".github" / "workflows" / "ci.yml").is_file() == (
@@ -404,19 +411,80 @@ def test_package_is_typed(baked: Baked) -> None:
 
 def test_poetry_versions_in_sync() -> None:
     # The template's default for generated projects and the template repo's
-    # own environment (.env for Docker and CI, the dev container) use the
-    # same Poetry, so the template is developed with what it generates.
+    # own environment (.env, used by Docker, CI and the dev container) use
+    # the same Poetry, so the template is developed with what it generates.
     default = load_json(REPO_ROOT / "cookiecutter.json")["poetry_version"]
     env = dict(
         line.split("=", 1)
         for line in (REPO_ROOT / ".env").read_text().splitlines()
         if line.startswith("POETRY_VERSION=")
     )
-    devcontainer = load_json(REPO_ROOT / ".devcontainer" / "devcontainer.json")
-    (poetry_feature,) = [
+
+    assert default == env["POETRY_VERSION"]
+    # The dev container gets Poetry from .env too, not a second pin.
+    root = load_json(REPO_ROOT / ".devcontainer" / "devcontainer.json")
+    assert not poetry_features(root)
+
+
+def poetry_features(devcontainer: dict[str, Any]) -> list[dict[str, Any]]:
+    return [
         options
-        for feature, options in devcontainer["features"].items()
+        for feature, options in devcontainer.get("features", {}).items()
         if "/poetry:" in feature
     ]
 
-    assert default == env["POETRY_VERSION"] == poetry_feature["version"]
+
+def assert_devcontainer_runs_compose(project: Path) -> None:
+    """The dev container runs the compose service: one environment."""
+    devcontainer_dir = project / ".devcontainer"
+    config = load_json(devcontainer_dir / "devcontainer.json")
+    assert "image" not in config
+    assert not poetry_features(config)
+
+    compose_files = [
+        devcontainer_dir / name for name in config["dockerComposeFile"]
+    ]
+    assert all(path.is_file() for path in compose_files)
+    base, override = (load_yaml(path) for path in compose_files)
+    service = config["service"]
+    assert service in base["services"]
+    # The workspace is where compose.yaml bind-mounts the project.
+    mounts = [
+        volume.split(":")[1]
+        for volume in base["services"][service]["volumes"]
+        if volume.split(":")[0] == "."
+    ]
+    assert mounts == [config["workspaceFolder"]]
+    assert override["services"][service]["build"]["target"] == "dev"
+
+
+@choices
+def test_devcontainer_environment(
+    baked: Baked,
+    ci_provider: str,
+    use_docker_compose: str,
+    use_devcontainer: str,
+) -> None:
+    if use_devcontainer != "yes":
+        pytest.skip("no dev container")
+    project = baked(
+        ci_provider=ci_provider,
+        use_docker_compose=use_docker_compose,
+        use_devcontainer=use_devcontainer,
+    )
+
+    if use_docker_compose == "yes":
+        assert_devcontainer_runs_compose(project)
+        return
+    # Without Docker Compose the dev container is the only definition.
+    config = load_json(project / ".devcontainer" / "devcontainer.json")
+    defaults = load_json(REPO_ROOT / "cookiecutter.json")
+    assert (
+        config["image"] == f"python:{defaults['python_version'][0]}-bookworm"
+    )
+    (poetry_feature,) = poetry_features(config)
+    assert poetry_feature["version"] == defaults["poetry_version"]
+
+
+def test_root_devcontainer_runs_compose() -> None:
+    assert_devcontainer_runs_compose(REPO_ROOT)
