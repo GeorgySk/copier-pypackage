@@ -5,9 +5,15 @@ A copy of the template is committed twice to a throwaway git repository:
 ``v1.0.0`` is the template as it is, ``v2.0.0`` adds lines to two files and
 removes another. Projects rendered from ``v1.0.0`` are then updated to
 ``v2.0.0``, the way a user pulls in template changes.
+
+Projects rendered from the template's latest real release (the newest
+``vX.Y.Z`` tag in this repository) are also updated to the current template,
+which is what users will do with the next release. That needs the release
+tags: CI checks out the full history (``fetch-depth: 0``).
 """
 
 import os
+import re
 import shutil
 from collections.abc import Iterator
 from pathlib import Path
@@ -20,6 +26,8 @@ from helpers import (
     BOOLS,
     CI_PROVIDERS,
     DROPPED_ENV_PREFIXES,
+    REPO_ROOT,
+    TEMPLATE_PATHS,
     git_commit_all,
     load_yaml,
     run_isolated,
@@ -32,6 +40,8 @@ V2_LINE = "# Added in template v2"
 # _skip_if_exists, with project_slug rendered).
 SKIPPED = ["CHANGES.rst", "{slug}/__init__.py", "tests/strategies/__init__.py"]
 CONFLICT_MARKERS = ("<<<<<<<", ">>>>>>>")
+# A final release tag (pre-releases such as v1.2.0-alpha don't count).
+RELEASE_TAG = re.compile(r"v\d+\.\d+\.\d+")
 
 choices = pytest.mark.parametrize(
     ("ci_provider", "use_docker_compose", "use_devcontainer"),
@@ -93,10 +103,15 @@ def copy(template_repo: Path, dst: Path, ref: str, **data: object) -> Path:
     return dst
 
 
-def update(project: Path, **data: object) -> None:
+def update(
+    project: Path,
+    data: dict[str, object] | None = None,
+    vcs_ref: str | None = None,
+) -> None:
     run_update(
         str(project),
-        data=data,
+        data=data or {},
+        vcs_ref=vcs_ref,
         defaults=True,
         overwrite=True,
         quiet=True,
@@ -120,6 +135,14 @@ def assert_no_conflicts(project: Path) -> None:
         assert not name.endswith(".rej"), name
         text = content.decode(errors="replace")
         assert not any(marker in text for marker in CONFLICT_MARKERS), name
+
+
+def assert_matches_fresh_render(project: Path, fresh: Path) -> None:
+    """``project`` equals ``fresh``, apart from the files the user owns."""
+    slug = load_yaml(fresh / ANSWERS_FILE)["project_slug"]
+    skipped = {name.format(slug=slug) for name in SKIPPED}
+    assert tree(project, exclude=skipped) == tree(fresh, exclude=skipped)
+    assert_no_conflicts(project)
 
 
 @pytest.fixture
@@ -171,11 +194,7 @@ def test_untouched_project_updates_to_fresh_render(
     git_commit_all(project)
     update(project)
     fresh = copy(template_repo, tmp_path / "fresh", V2, **answers)
-
-    slug = load_yaml(fresh / ANSWERS_FILE)["project_slug"]
-    skipped = {name.format(slug=slug) for name in SKIPPED}
-    assert tree(project, exclude=skipped) == tree(fresh, exclude=skipped)
-    assert_no_conflicts(project)
+    assert_matches_fresh_render(project, fresh)
 
 
 @pytest.mark.parametrize(
@@ -193,10 +212,83 @@ def test_changed_answers_add_and_remove_files(
 ) -> None:
     template_repo = Path(load_yaml(project / ANSWERS_FILE)["_src_path"])
 
-    update(project, **changed)
+    update(project, changed)
     fresh = copy(template_repo, tmp_path / "fresh", V2, **changed)
+    assert_matches_fresh_render(project, fresh)
 
-    slug = load_yaml(fresh / ANSWERS_FILE)["project_slug"]
-    skipped = {name.format(slug=slug) for name in SKIPPED}
-    assert tree(project, exclude=skipped) == tree(fresh, exclude=skipped)
-    assert_no_conflicts(project)
+
+def latest_release() -> str:
+    """The newest final release tag reachable from this repository's HEAD."""
+    shallow = run_isolated(
+        ["git", "rev-parse", "--is-shallow-repository"], cwd=REPO_ROOT
+    )
+    if shallow.returncode != 0:
+        pytest.skip(f"{REPO_ROOT} is not a git repository")
+    if shallow.stdout.strip() == "true":
+        pytest.fail(
+            "Shallow clone without the release tags: fetch the full history "
+            "(fetch-depth: 0 in actions/checkout)"
+        )
+    result = run_isolated(
+        ["git", "tag", "--list", "v*", "--merged", "HEAD"], cwd=REPO_ROOT
+    )
+    assert result.returncode == 0, result.stderr
+    releases = [
+        tag for tag in result.stdout.split() if RELEASE_TAG.fullmatch(tag)
+    ]
+    if not releases:
+        pytest.skip("No release tag yet")
+    return max(releases, key=lambda tag: tuple(map(int, tag[1:].split("."))))
+
+
+@pytest.fixture(scope="session")
+def release_repo(
+    tmp_path_factory: pytest.TempPathFactory, template_dir: Path
+) -> tuple[Path, str]:
+    """
+    A clone of this repository at its latest release, plus the current
+    template (working tree included) committed on top, untagged.
+    """
+    release = latest_release()
+    repo = tmp_path_factory.mktemp("release-repo") / "t"
+    clone = ["clone", "--quiet", "--branch", release, str(REPO_ROOT), "t"]
+    git(repo.parent, *clone)
+    git(repo, "switch", "--quiet", "--create", "current")
+    for name in TEMPLATE_PATHS:
+        path = repo / name
+        if path.is_dir():
+            shutil.rmtree(path)
+        elif path.exists():
+            path.unlink()
+        source = template_dir / name
+        if source.is_dir():
+            shutil.copytree(source, path)
+        else:
+            shutil.copy2(source, path)
+    git(repo, "add", "--all")
+    message = ["--message", "Current template"]
+    git(repo, "commit", "--quiet", "--no-verify", "--allow-empty", *message)
+    return repo, release
+
+
+@choices
+def test_release_updates_to_current_template(
+    release_repo: tuple[Path, str],
+    tmp_path: Path,
+    ci_provider: str,
+    use_docker_compose: bool,
+    use_devcontainer: bool,
+) -> None:
+    repo, release = release_repo
+    answers = {
+        "ci_provider": ci_provider,
+        "use_docker_compose": use_docker_compose,
+        "use_devcontainer": use_devcontainer,
+    }
+    project = copy(repo, tmp_path / "updated", release, **answers)
+    assert load_yaml(project / ANSWERS_FILE)["_commit"] == release
+    git_commit_all(project)
+    update(project, vcs_ref="HEAD")
+    fresh = copy(repo, tmp_path / "fresh", "HEAD", **answers)
+
+    assert_matches_fresh_render(project, fresh)

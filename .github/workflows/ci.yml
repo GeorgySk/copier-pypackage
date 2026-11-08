@@ -46,6 +46,10 @@ jobs:
         python-version: ["3.11", "3.12", "3.13", "3.14"]
     steps:
       - uses: actions/checkout@v7
+        with:
+          # The full history with tags: test_update.py updates projects
+          # rendered from the latest release tag.
+          fetch-depth: 0
       - name: Read tool versions from .env
         run: grep -E '^POETRY_VERSION=' .env >> "$GITHUB_ENV"
       - uses: actions/setup-python@v7
