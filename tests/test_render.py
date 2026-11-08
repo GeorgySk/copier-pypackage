@@ -341,6 +341,18 @@ def test_readme_links(baked: Baked, ci_provider: str) -> None:
     assert (gitlab_badge in readme) == (ci_provider == "gitlab")
     if ci_provider == "gitlab":
         assert f"github.com/{namespace}" not in readme
+    if ci_provider in ("github", "both"):
+        assert f"{github_badge}?branch=main" in readme
+    assert f"img.shields.io/pypi/pyversions/{slug}" in readme
+    assert "copier-org/copier/master/img/badge/" in readme
+
+
+@pytest.mark.parametrize("license_", LICENSES)
+def test_readme_license_badge(baked: Baked, license_: str) -> None:
+    project = baked(open_source_license=license_)
+    readme = (project / "README.md").read_text()
+    has_badge = "img.shields.io/github/license/" in readme
+    assert has_badge == (license_ != "Not open source")
 
 
 def test_devcontainer_setup_script_exists(baked: Baked) -> None:

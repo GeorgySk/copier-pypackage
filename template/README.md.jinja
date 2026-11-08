@@ -5,19 +5,23 @@
 {{ project_name }}
 ===
 {% if ci_provider in ["github", "both"] %}
-[![](https://github.com/{{ namespace }}/{{ slug }}/actions/workflows/ci.yml/badge.svg)](https://github.com/{{ namespace }}/{{ slug }}/actions/workflows/ci.yml "GitHub Actions")
+[![](https://github.com/{{ namespace }}/{{ slug }}/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/{{ namespace }}/{{ slug }}/actions/workflows/ci.yml?query=branch%3Amain "GitHub Actions")
 [![](https://codecov.io/gh/{{ namespace }}/{{ slug }}/branch/main/graph/badge.svg)](https://codecov.io/gh/{{ namespace }}/{{ slug }} "Codecov")
 {%- elif on_gitlab %}
 [![](https://gitlab.com/{{ namespace }}/{{ slug }}/badges/main/pipeline.svg)](https://gitlab.com/{{ namespace }}/{{ slug }}/-/pipelines "GitLab CI")
 [![](https://gitlab.com/{{ namespace }}/{{ slug }}/badges/main/coverage.svg)](https://gitlab.com/{{ namespace }}/{{ slug }}/-/pipelines "Coverage")
 {%- endif %}
 [![](https://readthedocs.org/projects/{{ slug }}/badge/?version=latest)](https://{{ slug }}.readthedocs.io/en/latest "Documentation")
+{%- if open_source_license != "Not open source" %}
 {%- if on_gitlab %}
 [![](https://img.shields.io/gitlab/license/{{ namespace }}%2F{{ slug }}.svg)]({{ repo_url }}/-/blob/main/LICENSE "License")
 {%- else %}
 [![](https://img.shields.io/github/license/{{ namespace }}/{{ slug }}.svg)]({{ repo_url }}/blob/main/LICENSE "License")
 {%- endif %}
+{%- endif %}
 [![](https://badge.fury.io/py/{{ slug }}.svg)](https://badge.fury.io/py/{{ slug }} "PyPI")
+[![](https://img.shields.io/pypi/pyversions/{{ slug }}.svg)](https://pypi.org/project/{{ slug }} "Supported Python versions")
+[![](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/copier-org/copier/master/img/badge/badge-grayscale-inverted-border-orange.json)](https://github.com/GeorgySk/copier-pypackage "Generated from the copier-pypackage template")
 
 Summary
 -------

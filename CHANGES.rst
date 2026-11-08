@@ -8,6 +8,26 @@ and this project adheres to `Semantic Versioning <https://semver.org/>`_.
 Unreleased
 ----------
 
+Added
+~~~~~
+
+- The generated ``README.md`` has a supported Python versions badge (from
+  PyPI) and a "Made with Copier" badge linking to this template.
+
+Changed
+~~~~~~~
+
+- The GitHub Actions badge in the generated ``README.md`` shows the status
+  of the ``main`` branch instead of the latest run on any branch.
+- The generated ``README.md`` has no license badge when the license is
+  "Not open source".
+
+Fixed
+~~~~~
+
+- The template's ``LICENSE`` named Audrey Roy Greenfeld in the
+  non-endorsement clause; it now refers to the copyright holder.
+
 0.28.0 (2026-11-08)
 ------------------------------
 
