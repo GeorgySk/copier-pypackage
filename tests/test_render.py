@@ -49,6 +49,9 @@ ci_choices = pytest.mark.parametrize(
     ],
 )
 
+# The generated project's GitHub Actions workflows.
+WORKFLOWS = ["ci.yml", "template-update.yml"]
+
 # `{{`, `{%` or `{#` left over by Jinja; GitHub's `${{ ... }}` is expected.
 UNRENDERED_JINJA = re.compile(r"(?<!\$)\{\{|\{%|\{#")
 
@@ -83,9 +86,10 @@ def test_files_match_choices(
     )
     for name in ("Dockerfile", "compose.yaml", ".env"):
         assert (project / name).is_file() == use_docker_compose
-    assert (project / ".github" / "workflows" / "ci.yml").is_file() == (
-        ci_provider in ("github", "both")
-    )
+    for workflow in WORKFLOWS:
+        assert (project / ".github" / "workflows" / workflow).is_file() == (
+            ci_provider in ("github", "both")
+        )
     assert (project / ".gitlab-ci.yml").is_file() == (
         ci_provider in ("gitlab", "both")
     )
@@ -220,13 +224,12 @@ def test_ci_schemas(
     project = baked(
         ci_provider=ci_provider, use_docker_compose=use_docker_compose
     )
-    workflow = project / ".github" / "workflows" / "ci.yml"
-    files = {
-        "vendor.github-workflows": workflow,
-        "vendor.gitlab-ci": project / ".gitlab-ci.yml",
-    }
+    files = [
+        ("vendor.github-workflows", project / ".github" / "workflows" / name)
+        for name in WORKFLOWS
+    ] + [("vendor.gitlab-ci", project / ".gitlab-ci.yml")]
 
-    for schema, path in files.items():
+    for schema, path in files:
         if not path.exists():
             continue
         result = subprocess.run(
@@ -250,7 +253,7 @@ def test_actionlint(
     )
 
     result = subprocess.run(
-        ["actionlint", ".github/workflows/ci.yml"],
+        ["actionlint", *(f".github/workflows/{name}" for name in WORKFLOWS)],
         cwd=project,
         capture_output=True,
         text=True,
@@ -426,6 +429,30 @@ def test_poetry_versions_in_sync() -> None:
     # The dev container gets Poetry from .env too, not a second pin.
     root = load_json(REPO_ROOT / ".devcontainer" / "devcontainer.json")
     assert not poetry_features(root)
+
+
+def test_copier_versions_in_sync(baked: Baked) -> None:
+    # The template-update workflow runs the Copier the template is tested
+    # with (the root lock file), which must satisfy _min_copier_version.
+    project = baked(ci_provider="github")
+    workflow = load_yaml(
+        project / ".github" / "workflows" / "template-update.yml"
+    )
+    pinned = workflow["env"]["COPIER_VERSION"]
+    lock = load_toml(REPO_ROOT / "poetry.lock")
+    (locked,) = (
+        package["version"]
+        for package in lock["package"]
+        if package["name"] == "copier"
+    )
+    minimum = load_yaml(REPO_ROOT / "copier.yml")["_min_copier_version"]
+
+    assert pinned == locked
+    assert version_tuple(pinned) >= version_tuple(minimum)
+
+
+def version_tuple(version: str) -> tuple[int, ...]:
+    return tuple(int(part) for part in version.split("."))
 
 
 def poetry_features(devcontainer: dict[str, Any]) -> list[dict[str, Any]]:

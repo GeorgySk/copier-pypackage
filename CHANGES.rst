@@ -8,6 +8,17 @@ and this project adheres to `Semantic Versioning <https://semver.org/>`_.
 Unreleased
 ----------
 
+Added
+~~~~~
+
+- Generated projects that use GitHub Actions get a ``Template update``
+  workflow (``.github/workflows/template-update.yml``). Every Monday, or
+  when run by hand, it runs ``copier update`` and opens a pull request for a
+  new template release: one pull request per release, as a draft when
+  there are conflicts to resolve. An optional ``TEMPLATE_UPDATE_TOKEN``
+  secret lets the pull request run CI and update workflow files (see the
+  generated ``README.md``).
+
 0.27.1 (2026-11-08)
 ------------------------------
 
