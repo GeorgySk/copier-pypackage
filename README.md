@@ -306,6 +306,17 @@ GitLab-only projects don't get the workflow; update them with
         copier copy gh:GeorgySk/copier-pypackage my_project
     mv my_project ..
     ```
+   Copier asks every question. To accept the defaults instead, add
+   `--defaults` (and `--data key=value` for any answer you want to set).
+
+   On Windows, the command above works in a WSL terminal but not in
+   PowerShell, which has no `id` command and continues lines with a
+   backtick instead of `\`. In PowerShell, leave out `--user` and `HOME`.
+   Docker Desktop shows files on Windows drives as owned by you anyway:
+    ```powershell
+    docker compose run --rm copier-pypackage copier copy gh:GeorgySk/copier-pypackage my_project
+    mv my_project ..
+    ```
 
 Development
 -----------

@@ -8,6 +8,13 @@ and this project adheres to `Semantic Versioning <https://semver.org/>`_.
 Unreleased
 ----------
 
+Added
+~~~~~
+
+- The README explains how to run the Docker generation command from
+  Windows PowerShell, and that Copier asks every question unless
+  ``--defaults`` is passed.
+
 0.28.1 (2026-11-08)
 ------------------------------
 
