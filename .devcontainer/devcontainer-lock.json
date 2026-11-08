@@ -1,10 +1,5 @@
 {
   "features": {
-    "ghcr.io/devcontainers-extra/features/poetry:2": {
-      "version": "2.0.18",
-      "resolved": "ghcr.io/devcontainers-extra/features/poetry@sha256:7b5f2c66d25d8b3cc5d601af6b81b720c77dd315f24d5e6f84b342cccc3c9228",
-      "integrity": "sha256:7b5f2c66d25d8b3cc5d601af6b81b720c77dd315f24d5e6f84b342cccc3c9228"
-    },
     "ghcr.io/devcontainers/features/common-utils:2": {
       "version": "2.7.1",
       "resolved": "ghcr.io/devcontainers/features/common-utils@sha256:e76a6a8a35d1ad824daad1540725e0ec9f8ed2dc00d2850e990a9830013c7d08",
