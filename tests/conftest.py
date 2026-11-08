@@ -2,10 +2,9 @@ from collections.abc import Callable
 from pathlib import Path
 
 import pytest
-import yaml
 from hypothesis import HealthCheck, settings
 
-from helpers import bake
+from helpers import bake, snapshot_template
 
 # Rendering the template takes a few hundred milliseconds per example.
 settings.register_profile(
@@ -23,33 +22,23 @@ settings.register_profile(
 
 
 @pytest.fixture(scope="session")
-def cookiecutter_config(tmp_path_factory: pytest.TempPathFactory) -> Path:
-    """Config file that keeps cookiecutter's replay and cache out of ~."""
-    base = tmp_path_factory.mktemp("cookiecutter-home")
-    config = base / "config.yaml"
-    config.write_text(
-        yaml.safe_dump(
-            {
-                "cookiecutters_dir": str(base / "cookiecutters"),
-                "replay_dir": str(base / "replay"),
-            }
-        )
-    )
-    return config
+def template_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """The template as it is in the working tree, outside git."""
+    return snapshot_template(tmp_path_factory.mktemp("template") / "copy")
 
 
 @pytest.fixture(scope="session")
 def baked(
-    tmp_path_factory: pytest.TempPathFactory, cookiecutter_config: Path
+    tmp_path_factory: pytest.TempPathFactory, template_dir: Path
 ) -> Callable[..., Path]:
     """Memoized ``bake`` so that tests sharing a context share a render."""
-    cache: dict[tuple[tuple[str, str], ...], Path] = {}
+    cache: dict[tuple[tuple[str, object], ...], Path] = {}
 
-    def _baked(**context: str) -> Path:
+    def _baked(**context: object) -> Path:
         key = tuple(sorted(context.items()))
         if key not in cache:
             cache[key] = bake(
-                tmp_path_factory.mktemp("bake"), cookiecutter_config, **context
+                tmp_path_factory.mktemp("bake"), template_dir, **context
             )
         return cache[key]
 

@@ -1,10 +1,10 @@
-{%- set py_minor = cookiecutter.python_version.split(".")[1] | int -%}
+{%- set py_minor = python_version.split(".")[1] | int -%}
 # Keep the jobs and commands in sync with .github/workflows/ci.yml (if present).
 stages: [lint, test, build, publish]
 
 variables:
-  PYTHON_VERSION: "{{ cookiecutter.python_version }}"
-  POETRY_VERSION: "{{ cookiecutter.poetry_version }}"
+  PYTHON_VERSION: "{{ python_version }}"
+  POETRY_VERSION: "{{ poetry_version }}"
 
 # Run for merge requests, the default branch and tags.
 workflow:
@@ -37,7 +37,7 @@ test:
   stage: test
   parallel:
     matrix:
-      - PYTHON_VERSION: [{% for minor in range(py_minor, 15) %}"3.{{ minor }}"{{ ", " if not loop.last }}{% endfor %}]
+      - PYTHON_VERSION: [{% for minor in range(py_minor, 15) %}"3.{{ minor }}"{{ ", " if not loop.last else "" }}{% endfor %}]
   script:
     - poetry run pytest --cov --cov-report=term --cov-report=xml --junitxml=report.xml
   coverage: '/^TOTAL.*\s+(\d+(?:\.\d+)?%)$/'
@@ -67,7 +67,7 @@ build:
   artifacts:
     paths:
       - dist/
-{%- if cookiecutter.ci_provider == "gitlab" %}
+{%- if ci_provider == "gitlab" %}
 {#- With ci_provider == "both", GitHub publishes to PyPI: a second upload of
     the same version would fail. #}
 
@@ -86,7 +86,7 @@ publish-pypi:
     - pip install "poetry==${POETRY_VERSION}"
     - poetry publish --username __token__ --password "${PYPI_API_TOKEN}"
 {%- endif %}
-{%- if cookiecutter.use_docker_compose == "yes" %}
+{%- if use_docker_compose %}
 
 publish-docker:
   extends: .release-rules

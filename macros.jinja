@@ -1,0 +1,27 @@
+{#-
+Macros for the template, imported with
+``{% from 'macros.jinja' import ... %}``. Copier resolves imports from the
+repository root (not from ``_subdirectory``), so this file is never rendered
+into a project. Macros instead of Jinja extensions: extensions are an unsafe
+Copier feature and would make every user pass ``--trust``.
+-#}
+
+{#- Escape ``value`` for use between double quotes: valid inside a TOML basic
+string ("...") and a Python string literal ("..." or """..."""), as long as
+``value`` has no control characters (prompt answers are single lines). -#}
+{%- macro escape_double_quoted(value) -%}
+{{ value | string | replace('\\', '\\\\') | replace('"', '\\"') }}
+{%- endmacro -%}
+
+{#- Render ``value`` as a Python string literal, quotes included, with the
+quotes ``ruff format`` would pick: double quotes, unless the value has more
+double than single quotes. A generated project then passes
+``ruff format --check`` whatever the prompt answer was. -#}
+{%- macro python_string(value) -%}
+{%- set text = value | string | replace('\\', '\\\\') -%}
+{%- if text.count('"') > text.count("'") -%}
+'{{ text | replace("'", "\\'") }}'
+{%- else -%}
+"{{ text | replace('"', '\\"') }}"
+{%- endif -%}
+{%- endmacro -%}

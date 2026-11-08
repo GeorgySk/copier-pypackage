@@ -4,15 +4,14 @@ ARG IMAGE_TYPE
 FROM python:${PYTHON_IMAGE_VERSION} AS base
 ARG POETRY_VERSION
 
-WORKDIR /opt/cookiecutter-pypackage
+WORKDIR /opt/copier-pypackage
 
 RUN pip install "poetry==${POETRY_VERSION}" && \
     poetry config virtualenvs.create false
 
 COPY README.md LICENSE pyproject.toml poetry.lock ./
-COPY cookiecutter.json local_extensions.py ./
-COPY hooks/ hooks/
-COPY {{cookiecutter.project_slug}}/ {{cookiecutter.project_slug}}/
+COPY copier.yml macros.jinja ./
+COPY template/ template/
 
 FROM base AS prod
 RUN poetry install --no-root

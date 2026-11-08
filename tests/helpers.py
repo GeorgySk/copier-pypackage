@@ -1,40 +1,78 @@
 import json
 import os
 import re
+import shutil
 import subprocess
 import tomllib
 from pathlib import Path
 from typing import Any
 
 import yaml
-from cookiecutter.main import cookiecutter
+from copier import run_copy
 
 # TEMPLATE_DIR lets the tests run against a modified copy of the template.
 REPO_ROOT = Path(
     os.environ.get("TEMPLATE_DIR", Path(__file__).resolve().parents[1])
 )
+# What Copier reads from the template repository: copier.yml at the root,
+# the imported macros and the rendered subdirectory.
+TEMPLATE_PATHS = ("copier.yml", "macros.jinja", "template")
 
 CI_PROVIDERS = ["github", "gitlab", "both", "none"]
-YES_NO = ["yes", "no"]
-COOKIECUTTER_JSON = json.loads((REPO_ROOT / "cookiecutter.json").read_text())
-LICENSES = COOKIECUTTER_JSON["open_source_license"]
-PYTHON_VERSIONS = COOKIECUTTER_JSON["python_version"]
+BOOLS = [True, False]
+QUESTIONS = {
+    key: value
+    for key, value in yaml.safe_load(
+        (REPO_ROOT / "copier.yml").read_text()
+    ).items()
+    if not key.startswith("_")
+}
+DEFAULTS = {key: question["default"] for key, question in QUESTIONS.items()}
+LICENSES = QUESTIONS["open_source_license"]["choices"]
+PYTHON_VERSIONS = QUESTIONS["python_version"]["choices"]
+ANSWERS_FILE = ".copier-answers.yml"
 
-# Same rule as hooks/pre_gen_project.py: importable and a valid PyPI name.
+# Same rule as the project_slug validator: importable and a valid PyPI name.
 VALID_SLUG = re.compile(r"[a-z_][a-z0-9_]*")
 
 
-def bake(output_dir: Path, config_file: Path, **context: str) -> Path:
-    """Render the template with ``context`` and return the project path."""
-    return Path(
-        cookiecutter(
-            str(REPO_ROOT),
-            no_input=True,
-            extra_context=context,
-            output_dir=str(output_dir),
-            config_file=str(config_file),
-        )
+def snapshot_template(destination: Path) -> Path:
+    """
+    Copy the template to ``destination``, outside any git repository.
+
+    Copier renders a git template from a clone of a commit (HEAD plus
+    uncommitted changes when ``vcs_ref="HEAD"``), which is slow and noisy;
+    a plain directory is rendered as it is.
+    """
+    destination.mkdir(parents=True)
+    for name in TEMPLATE_PATHS:
+        source = REPO_ROOT / name
+        if source.is_dir():
+            shutil.copytree(source, destination / name)
+        else:
+            shutil.copy2(source, destination / name)
+    return destination
+
+
+def bake(output_dir: Path, template_dir: Path, **context: object) -> Path:
+    """
+    Render ``template_dir`` with ``context`` and return the project path.
+
+    The project directory is named after the project slug, as a user would
+    name it.
+    """
+    staging = output_dir / ".render"
+    run_copy(
+        str(template_dir),
+        str(staging),
+        data=context,
+        defaults=True,
+        quiet=True,
+        # Copier's default: the latest tag, which may lag behind HEAD.
+        vcs_ref="HEAD",
     )
+    slug = load_yaml(staging / ANSWERS_FILE)["project_slug"]
+    return staging.rename(output_dir / slug)
 
 
 def load_toml(path: Path) -> dict[str, Any]:

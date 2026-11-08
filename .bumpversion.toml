@@ -1,6 +1,10 @@
 [tool.bumpversion]
-commit = false
-tag = false
+# Copier picks template versions from git tags: `copier copy` and
+# `copier update` use the latest vX.Y.Z tag. Alpha tags (vX.Y.Z-alpha) are
+# pre-releases, which Copier skips unless asked (--prereleases).
+commit = true
+tag = true
+tag_name = "v{new_version}"
 current_version = "0.26.0"
 parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)(\\-(?P<release>[a-z]+))?"
 serialize = [

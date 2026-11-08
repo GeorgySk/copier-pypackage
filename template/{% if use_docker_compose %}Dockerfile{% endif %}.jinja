@@ -4,7 +4,7 @@ ARG IMAGE_TYPE
 FROM python:${PYTHON_IMAGE_VERSION} AS base
 ARG POETRY_VERSION
 
-WORKDIR /opt/{{ cookiecutter.project_slug }}
+WORKDIR /opt/{{ project_slug }}
 
 RUN pip install "poetry==${POETRY_VERSION}" && \
     poetry config virtualenvs.create false
@@ -12,7 +12,7 @@ RUN pip install "poetry==${POETRY_VERSION}" && \
 COPY README.md .
 COPY docs/ docs/
 COPY tests/ tests/
-COPY {{ cookiecutter.project_slug }}/ {{ cookiecutter.project_slug }}/
+COPY {{ project_slug }}/ {{ project_slug }}/
 COPY pyproject.toml .
 COPY LICENSE .
 

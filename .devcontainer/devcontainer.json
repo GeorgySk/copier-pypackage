@@ -1,12 +1,12 @@
 {
-  "name": "cookiecutter-pypackage",
+  "name": "copier-pypackage",
   "dockerComposeFile": ["../compose.yaml", "compose.devcontainer.yaml"],
-  "service": "cookiecutter-pypackage",
+  "service": "copier-pypackage",
   "overrideCommand": true,
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {}
   },
-  "workspaceFolder": "/opt/cookiecutter-pypackage",
-  "onCreateCommand": "bash /opt/cookiecutter-pypackage/.devcontainer/setup_user.sh",
-  "remoteUser": "${localEnv:USER}"
+  "workspaceFolder": "/opt/copier-pypackage",
+  "onCreateCommand": "bash /opt/copier-pypackage/.devcontainer/setup_user.sh",
+  "remoteUser": "vscode"
 }

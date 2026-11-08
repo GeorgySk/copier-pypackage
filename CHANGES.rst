@@ -8,6 +8,41 @@ and this project adheres to `Semantic Versioning <https://semver.org/>`_.
 Unreleased
 ----------
 
+Added
+~~~~~
+
+- Generated projects can pull in later template releases with
+  ``copier update``: answers and the template version are recorded in
+  ``.copier-answers.yml``. ``CHANGES.rst``, ``<project_slug>/__init__.py``
+  and ``tests/strategies/__init__.py`` belong to the project and are never
+  touched by updates. The generated ``README.md`` explains how to update.
+- Releases of the template are tagged ``vX.Y.Z`` (``bump-my-version`` now
+  commits and tags), which is how Copier finds template versions.
+
+Changed
+~~~~~~~
+
+- **Breaking:** the template is now a `Copier <https://copier.readthedocs.io>`_
+  template instead of a Cookiecutter one. Generate projects with
+  ``copier copy gh:GeorgySk/copier-pypackage <directory>``. The generated
+  files are the same as before.
+- **Breaking:** ``use_devcontainer`` and ``use_docker_compose`` are yes/no
+  booleans instead of the strings ``"yes"`` and ``"no"`` (pass ``true`` or
+  ``false`` with ``--data``).
+- An invalid ``project_slug`` is asked again instead of aborting generation.
+- ``poetry_version`` is no longer a question: generated projects always use
+  the template's Poetry version, and ``copier update`` brings in new ones.
+- The repository is renamed from ``cookiecutter-pypackage`` to
+  ``copier-pypackage``, and its container workspace from
+  ``/opt/cookiecutter-pypackage`` to ``/opt/copier-pypackage``.
+
+Removed
+~~~~~~~
+
+- Cookiecutter support (``cookiecutter.json``, ``hooks/`` and
+  ``local_extensions.py``). To generate with Cookiecutter, use version
+  0.26.0 or earlier.
+
 Fixed
 ~~~~~
 
@@ -15,6 +50,12 @@ Fixed
   already had the workspace owner's uid and gid (the dev container CLI sets
   them on Linux), or when a group with that gid already existed. It now
   changes only what differs and reuses existing groups.
+- The dev container's ``onCreateCommand`` failed on Windows hosts with
+  ``usermod: UID '1000' already exists``. ``remoteUser`` was
+  ``${localEnv:USER}``, which is empty on Windows, so ``setup_user.sh`` ran
+  as root and tried to give root the workspace owner's uid. Both dev
+  containers now use the ``vscode`` user that the ``common-utils`` feature
+  creates, and ``setup_user.sh`` never changes root's ids.
 
 0.26.0 (2026-11-08)
 ------------------------------

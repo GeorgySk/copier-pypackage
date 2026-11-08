@@ -1,17 +1,18 @@
+{% from 'macros.jinja' import escape_double_quoted -%}
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [project]
-name = "{{ cookiecutter.project_slug }}"
-version = "{{ cookiecutter.version }}"
-description = "{{ cookiecutter.project_short_description | escape_double_quoted }}"
+name = "{{ project_slug }}"
+version = "{{ version }}"
+description = "{{ escape_double_quoted(project_short_description) }}"
 authors = [
-    { name = "{{ cookiecutter.full_name | escape_double_quoted }}", email = "{{ cookiecutter.email | escape_double_quoted }}" },
+    { name = "{{ escape_double_quoted(full_name) }}", email = "{{ escape_double_quoted(email) }}" },
 ]
 readme = "README.md"
 license-files = ["LICENSE"]
-requires-python = ">={{ cookiecutter.python_version }},<4.0"
+requires-python = ">={{ python_version }},<4.0"
 dependencies = []
 
 [dependency-groups]
@@ -38,7 +39,7 @@ optional = true
 optional = true
 
 [tool.coverage.run]
-source = ["{{ cookiecutter.project_slug }}"]
+source = ["{{ project_slug }}"]
 
 [tool.pytest.ini_options]
 addopts = "--verbose -s --hypothesis-profile=default"

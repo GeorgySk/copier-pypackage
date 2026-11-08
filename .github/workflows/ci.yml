@@ -1,5 +1,5 @@
 # CI for the template repo itself (the generated project has its own
-# workflow under {{cookiecutter.project_slug}}/.github/).
+# workflow under template/, in a conditionally named .github directory).
 name: CI
 
 on:
@@ -102,6 +102,6 @@ jobs:
       - uses: actions/checkout@v5
       - uses: devcontainers/ci@v0.3
         with:
-          imageName: cookiecutter-pypackage-devcontainer
+          imageName: copier-pypackage-devcontainer
           push: never
           runCmd: poetry --version && python -m pytest --collect-only -q

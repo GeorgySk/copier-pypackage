@@ -1,4 +1,4 @@
-{%- set py_minor = cookiecutter.python_version.split(".")[1] | int -%}
+{%- set py_minor = python_version.split(".")[1] | int -%}
 # Keep the jobs and commands in sync with .gitlab-ci.yml (if present).
 name: CI
 
@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 env:
-  POETRY_VERSION: "{{ cookiecutter.poetry_version }}"
+  POETRY_VERSION: "{{ poetry_version }}"
 
 jobs:
   lint:
@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with:
-          python-version: "{{ cookiecutter.python_version }}"
+          python-version: "{{ python_version }}"
       - name: Install Poetry
         run: pipx install "poetry==${POETRY_VERSION}"
       - name: Install dependencies
@@ -38,7 +38,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [{% for minor in range(py_minor, 15) %}"3.{{ minor }}"{{ ", " if not loop.last }}{% endfor %}]
+        python-version: [{% for minor in range(py_minor, 15) %}"3.{{ minor }}"{{ ", " if not loop.last else "" }}{% endfor %}]
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
@@ -53,7 +53,7 @@ jobs:
       - name: Run tests
         run: poetry run pytest --cov --cov-report=term --cov-report=xml --junitxml=report.xml
       - name: Upload coverage to Codecov
-        if: matrix.python-version == '{{ cookiecutter.python_version }}'
+        if: matrix.python-version == '{{ python_version }}'
         uses: codecov/codecov-action@v5
         with:
           files: coverage.xml
@@ -67,7 +67,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with:
-          python-version: "{{ cookiecutter.python_version }}"
+          python-version: "{{ python_version }}"
       - name: Install Poetry
         run: pipx install "poetry==${POETRY_VERSION}"
       - name: Build sdist and wheel
@@ -83,7 +83,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with:
-          python-version: "{{ cookiecutter.python_version }}"
+          python-version: "{{ python_version }}"
       - name: Install Poetry
         run: pipx install "poetry==${POETRY_VERSION}"
       - name: Install dependencies
@@ -114,7 +114,7 @@ jobs:
           path: dist/
       - uses: pypa/gh-action-pypi-publish@release/v1
 {% endraw %}
-{%- if cookiecutter.use_docker_compose == "yes" %}
+{%- if use_docker_compose %}
 {%- raw %}
   publish-docker:
     needs: [lint, test, build, docs]
