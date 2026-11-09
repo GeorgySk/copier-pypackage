@@ -1,6 +1,6 @@
 """Render every combination of the choice prompts and inspect it."""
 
-import datetime
+import datetime as dt
 import re
 import shutil
 import subprocess
@@ -236,6 +236,7 @@ def test_ci_schemas(
             ["check-jsonschema", "--builtin-schema", schema, str(path)],
             capture_output=True,
             text=True,
+            check=False,
         )
         assert result.returncode == 0, result.stdout + result.stderr
 
@@ -257,6 +258,7 @@ def test_actionlint(
         cwd=project,
         capture_output=True,
         text=True,
+        check=False,
     )
     assert result.returncode == 0, result.stdout + result.stderr
 
@@ -264,7 +266,8 @@ def test_actionlint(
 def test_python_version_choices() -> None:
     # Python 3.11 is the minimum (3.10 is end-of-life), and the choices end
     # where the CI matrices end (range(..., 15) in both CI files).
-    assert PYTHON_VERSIONS == [f"3.{minor}" for minor in range(11, 15)]
+    expected = [f"3.{minor}" for minor in range(11, 15)]
+    assert expected == PYTHON_VERSIONS
 
 
 @pytest.mark.parametrize("python_version", PYTHON_VERSIONS)
@@ -303,7 +306,8 @@ def test_license_choices_are_covered() -> None:
 def test_license(baked: Baked, license_: str) -> None:
     full_name = "Jane Doe"
     project = baked(open_source_license=license_, full_name=full_name)
-    year = str(datetime.date.today().year)
+    # local date, like the template's `'%Y' | strftime`
+    year = str(dt.date.today().year)  # noqa: DTZ011
 
     text = (project / "LICENSE").read_text()
     expected_first_line = LICENSE_FIRST_LINES[license_].format(

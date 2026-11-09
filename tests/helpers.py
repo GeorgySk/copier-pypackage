@@ -80,11 +80,11 @@ def load_toml(path: Path) -> dict[str, Any]:
         return tomllib.load(file)
 
 
-def load_yaml(path: Path) -> Any:
+def load_yaml(path: Path) -> Any:  # noqa: ANN401 (any YAML document)
     return yaml.safe_load(path.read_text())
 
 
-def load_json(path: Path) -> Any:
+def load_json(path: Path) -> Any:  # noqa: ANN401 (any JSON document)
     return json.loads(path.read_text())
 
 
@@ -157,6 +157,7 @@ def run_isolated(
         text=True,
         stdin=subprocess.DEVNULL,
         timeout=timeout,
+        check=False,
     )
 
 
