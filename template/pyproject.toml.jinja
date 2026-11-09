@@ -116,6 +116,13 @@ ignore = [
     "S101",  # it's expected to have `assert` in tests
     "E731",  # lambdas are handy for defining simple test keys
 ]
+# Text from the prompt answers is rendered into this file's docstring and
+# strings. A long description can't fit the docstring's one-line summary
+# (D205), and the answers may hold backslashes (D301), start with "This"
+# (D404) or contain invisible characters (PLE2502, PLE2515).
+"{{ project_slug }}/__init__.py" = [
+    "D205", "D301", "D404", "PLE2502", "PLE2515",
+]
 "docs/**" = [
     "D100",  # Sphinx's `conf.py` is a config file, not a documented module
     "DTZ011",  # local date is fine for the copyright year

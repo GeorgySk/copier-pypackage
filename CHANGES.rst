@@ -15,13 +15,13 @@ Changed
   (``select = ["ALL"]``). A few are ignored, each with a comment giving the
   reason: ``COM812``, ``B905``, ``CPY001``, ``TC002``, ``D401``, ``D212``,
   ``D203``, ``EM101``, ``EM102``, ``TRY003`` and ``RUF001``–``RUF003``.
-  ``tests/`` and ``docs/`` have their own per-file ignores. The template
-  repository's own Ruff config follows suit.
-- The docstring of the generated package's ``__init__.py`` is
-  ``The <project_slug> package.`` instead of the short description. Free
-  text can't pass every docstring rule (long descriptions, ones starting
-  with "This", backslashes). The description is still in
-  ``pyproject.toml`` and ``README.md``.
+  ``tests/`` and ``docs/`` have their own per-file ignores, and so does
+  the package's ``__init__.py``, whose docstring and strings come from the
+  prompt answers: ``D205``, ``D301``, ``D404``, ``PLE2502`` and
+  ``PLE2515``. The template repository's own Ruff config follows suit.
+- When the short description is too long for one line, the docstring of
+  the generated package's ``__init__.py`` starts on the line after the
+  opening quotes and ends with the closing quotes on their own line.
 
 Fixed
 ~~~~~

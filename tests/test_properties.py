@@ -8,7 +8,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from hypothesis import given
+from hypothesis import example, given
 from hypothesis import strategies as st
 
 from helpers import VALID_SLUG, bake, load_toml
@@ -29,7 +29,7 @@ plausible_name = st.from_regex(
     r"[A-Za-z_][A-Za-z0-9_ \-]{0,29}", fullmatch=True
 )
 project_names = st.one_of(name_like, plausible_name)
-# Longer than a line, as descriptions often are.
+# Long enough that the docstring in __init__.py has to wrap.
 long_line = st.text(
     st.characters(exclude_categories=("Cs", "Cc")), max_size=200
 )
@@ -42,6 +42,10 @@ def default_slug(project_name: str) -> str:
 
 def is_valid_slug(slug: str) -> bool:
     return bool(VALID_SLUG.fullmatch(slug)) and not keyword.iskeyword(slug)
+
+
+def normalize_whitespace(text: str) -> str:
+    return " ".join(text.split())
 
 
 def assert_ruff_clean(project: Path, path: Path) -> None:
@@ -80,6 +84,10 @@ def module_strings(path: Path) -> tuple[str, dict[str, str]]:
 
 
 @given(full_name=single_line, email=single_line, description=long_line)
+# Trailing whitespace is trimmed before the final "." (found on CI).
+@example(full_name="", email="", description="0 ")
+# Invisible bidi control, Ruff's PLE2502 (found on CI).
+@example(full_name="", email="\u202a", description="")
 def test_free_text_round_trips(
     template_dir: Path, full_name: str, email: str, description: str
 ) -> None:
@@ -98,9 +106,10 @@ def test_free_text_round_trips(
 
         init = project / project.name / "__init__.py"
         docstring, assignments = module_strings(init)
-        # Free text in a docstring can't pass every Ruff rule (D205, D301,
-        # D404), so the description isn't repeated there.
-        assert docstring == f"The {project.name} package."
+        # The docstring is stripped and wrapped at 72 columns.
+        assert normalize_whitespace(docstring) == normalize_whitespace(
+            description.strip() + "."
+        )
         assert assignments["__author__"] == full_name
         assert assignments["__email__"] == email
 
