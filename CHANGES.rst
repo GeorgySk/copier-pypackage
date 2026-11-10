@@ -8,6 +8,24 @@ and this project adheres to `Semantic Versioning <https://semver.org/>`_.
 Unreleased
 ----------
 
+0.28.4 (2026-11-10)
+------------------------------
+
+Changed
+~~~~~~~
+
+- The generated project's Ruff config ignores ``CPY001`` (missing copyright
+  notice) only for the MIT, BSD and ISC licenses, whose notice is satisfied
+  by the LICENSE file. With the Apache 2.0 or GPL v3 license, or when the
+  project isn't open source, the rule is enforced and every generated
+  ``.py`` file starts with a copyright comment (``# Copyright (c) <year>,
+  <full name>``), plus an SPDX license identifier for Apache 2.0
+  (``Apache-2.0``) and GPL v3 (``GPL-3.0-or-later``). Existing projects with
+  those licenses get the comment in the files ``copier update`` manages, but
+  have to add it by hand to their own modules and to the package's
+  ``__init__.py`` and ``tests/strategies/__init__.py``, which updates leave
+  alone.
+
 0.28.3 (2026-11-10)
 ------------------------------
 

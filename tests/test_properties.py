@@ -11,7 +11,7 @@ import pytest
 from hypothesis import example, given
 from hypothesis import strategies as st
 
-from helpers import VALID_SLUG, bake, load_toml
+from helpers import LICENSES, VALID_SLUG, bake, load_toml
 
 # Prompt answers are single lines, so control characters (which include
 # newlines) and lone surrogates are out of scope. Anything else goes: Copier
@@ -83,13 +83,25 @@ def module_strings(path: Path) -> tuple[str, dict[str, str]]:
     return docstring, assignments
 
 
-@given(full_name=single_line, email=single_line, description=long_line)
+@given(
+    full_name=single_line,
+    email=single_line,
+    description=long_line,
+    # Most licenses put `full_name` in a copyright comment atop the file.
+    license_=st.sampled_from(LICENSES),
+)
 # Trailing whitespace is trimmed before the final "." (found on CI).
-@example(full_name="", email="", description="0 ")
+@example(full_name="", email="", description="0 ", license_="MIT license")
 # Invisible bidi control, Ruff's PLE2502 (found on CI).
-@example(full_name="", email="\u202a", description="")
+@example(full_name="", email="\u202a", description="", license_="MIT license")
+# Trailing whitespace in the copyright comment would be W291.
+@example(full_name=" a ", email="", description="", license_="Not open source")
 def test_free_text_round_trips(
-    template_dir: Path, full_name: str, email: str, description: str
+    template_dir: Path,
+    full_name: str,
+    email: str,
+    description: str,
+    license_: str,
 ) -> None:
     with tempfile.TemporaryDirectory() as output_dir:
         project = bake(
@@ -98,6 +110,7 @@ def test_free_text_round_trips(
             full_name=full_name,
             email=email,
             project_short_description=description,
+            open_source_license=license_,
         )
 
         metadata = load_toml(project / "pyproject.toml")["project"]

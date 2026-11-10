@@ -25,3 +25,31 @@ double than single quotes. A generated project then passes
 "{{ text | replace('"', '\\"') }}"
 {%- endif -%}
 {%- endmacro -%}
+
+{#- Licenses that only ask for the copyright notice to accompany copies of
+the work, which the LICENSE file already does: per-file notices add nothing,
+so the generated Ruff config ignores CPY001 and the ``.py`` files get no
+header. Every other license gets both. -#}
+{%- set licenses_without_file_notices = [
+    'MIT license', 'BSD license', 'ISC license'
+] -%}
+
+{#- The comment block that starts every generated ``.py`` file when the
+license calls for per-file notices (see above), empty otherwise. It matches
+Ruff's CPY001 pattern, adds an SPDX identifier for the open source licenses,
+and ends with ``trailer`` (a blank line by default) to separate it from the
+code. The name loses surrounding whitespace (W291) and trailing backslashes,
+which make Ruff take the comment for commented-out code (ERA001). -#}
+{%- macro copyright_header(open_source_license, full_name, trailer='\n') -%}
+{%- if open_source_license not in licenses_without_file_notices -%}
+{%- set name = full_name | string | trim
+    | regex_replace('[\\s\\\\]+\\Z', '') -%}
+{{ '# Copyright (c) ' ~ ('%Y' | strftime) ~ (', ' ~ name if name else '') ~ '\n' }}
+{%- if open_source_license == 'Apache Software License 2.0' -%}
+{{ '# SPDX-License-Identifier: Apache-2.0\n' }}
+{%- elif open_source_license == 'GNU General Public License v3' -%}
+{{ '# SPDX-License-Identifier: GPL-3.0-or-later\n' }}
+{%- endif -%}
+{{ trailer }}
+{%- endif -%}
+{%- endmacro -%}

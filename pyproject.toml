@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "copier-pypackage"
-version = "0.28.3"
+version = "0.28.4"
 description = ""
 authors = [
     { name = "Georgy Skorobogatov", email = "skorobogatovgeorgy+github@gmail.com" },
@@ -47,8 +47,10 @@ ignore = [
     # anyone familiar with Python knows, so spelling out the default only
     # adds noise. We pass `strict=True` where lengths must match.
     "B905",
-    # The LICENSE file covers the whole package, so per-file copyright
-    # headers are not required.
+    # The license (BSD) only requires the copyright notice to accompany
+    # copies of the work, which the LICENSE file already does, so per-file
+    # copyright headers add nothing. (The generated project ignores CPY001
+    # only for the MIT, BSD and ISC licenses.)
     "CPY001",
     # Moving third-party imports used only in annotations under
     # `if TYPE_CHECKING:` saves their import cost only if nothing else
