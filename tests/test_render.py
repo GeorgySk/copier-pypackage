@@ -359,6 +359,45 @@ def test_readme_license_badge(baked: Baked, license_: str) -> None:
     assert has_badge == (license_ != "Not open source")
 
 
+# Licenses whose copyright notice only has to accompany copies of the work
+# (the LICENSE file does that), so the generated project skips per-file
+# notices. Same list as `licenses_without_file_notices` in macros.jinja.
+LICENSES_WITHOUT_FILE_NOTICES = ["MIT license", "BSD license", "ISC license"]
+SPDX_IDENTIFIERS = {
+    "Apache Software License 2.0": "Apache-2.0",
+    "GNU General Public License v3": "GPL-3.0-or-later",
+}
+
+
+@pytest.mark.parametrize("license_", LICENSES)
+def test_copyright_headers(baked: Baked, license_: str) -> None:
+    full_name = "Jane Doe"
+    project = baked(open_source_license=license_, full_name=full_name)
+    year = dt.date.today().year  # noqa: DTZ011
+    notices = license_ not in LICENSES_WITHOUT_FILE_NOTICES
+
+    ruff = load_toml(project / "pyproject.toml")["tool"]["ruff"]["lint"]
+    assert ("CPY001" in ruff["ignore"]) != notices
+    expected = [f"# Copyright (c) {year}, {full_name}"]
+    if license_ in SPDX_IDENTIFIERS:
+        expected.append(
+            f"# SPDX-License-Identifier: {SPDX_IDENTIFIERS[license_]}"
+        )
+    for path in project.rglob("*.py"):
+        lines = path.read_text().splitlines()
+        header = lines[: len(expected)]
+        assert (header == expected) == notices, path
+    # The generated config (with CPY001 when it's enabled) accepts them.
+    result = subprocess.run(
+        [sys.executable, "-m", "ruff", "check", "."],
+        cwd=project,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
 def test_devcontainer_setup_script_exists(baked: Baked) -> None:
     project = baked(use_devcontainer=True, project_name="Demo Lib")
     config = load_json(project / ".devcontainer" / "devcontainer.json")
