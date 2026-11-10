@@ -61,6 +61,7 @@ def assert_ruff_clean(project: Path, path: Path) -> None:
             cwd=project,
             capture_output=True,
             text=True,
+            check=False,
         )
         assert result.returncode == 0, result.stdout + result.stderr
 
@@ -85,6 +86,8 @@ def module_strings(path: Path) -> tuple[str, dict[str, str]]:
 @given(full_name=single_line, email=single_line, description=long_line)
 # Trailing whitespace is trimmed before the final "." (found on CI).
 @example(full_name="", email="", description="0 ")
+# Invisible bidi control, Ruff's PLE2502 (found on CI).
+@example(full_name="", email="\u202a", description="")
 def test_free_text_round_trips(
     template_dir: Path, full_name: str, email: str, description: str
 ) -> None:

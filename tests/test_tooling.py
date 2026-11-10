@@ -44,6 +44,7 @@ class Project:
     def __init__(
         self, path: Path, context: dict[str, str], env: dict[str, str]
     ) -> None:
+        """Wrap the project at ``path``, rendered from ``context``."""
         self.path = path
         self.context = context
         self.env = env
@@ -58,6 +59,7 @@ class Project:
         return result.stdout
 
     def poetry_run(self, *command: str, timeout: float = 300) -> str:
+        """Run ``command`` in the project's environment, like ``run``."""
         return self.run("poetry", "run", *command, timeout=timeout)
 
 

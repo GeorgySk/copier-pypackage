@@ -8,6 +8,30 @@ and this project adheres to `Semantic Versioning <https://semver.org/>`_.
 Unreleased
 ----------
 
+0.28.3 (2026-11-10)
+------------------------------
+
+Changed
+~~~~~~~
+
+- The generated project's Ruff config selects every rule
+  (``select = ["ALL"]``). A few are ignored, each with a comment giving the
+  reason: ``COM812``, ``B905``, ``CPY001``, ``TC002``, ``D401``, ``D212``,
+  ``D203``, ``EM101``, ``EM102``, ``TRY003`` and ``RUF001``–``RUF003``.
+  ``tests/`` and ``docs/`` have their own per-file ignores, and so does
+  the package's ``__init__.py``, whose docstring and strings come from the
+  prompt answers: ``D205``, ``D301``, ``D404``, ``PLE2502`` and
+  ``PLE2515``. The template repository's own Ruff config follows suit.
+- When the short description is too long for one line, the docstring of
+  the generated package's ``__init__.py`` starts on the line after the
+  opening quotes and ends with the closing quotes on their own line.
+
+Fixed
+~~~~~
+
+- The generated ``docs/source/conf.py`` is no longer executable, and it
+  finds the project root with ``pathlib`` instead of ``os.path``.
+
 0.28.2 (2026-11-08)
 ------------------------------
 

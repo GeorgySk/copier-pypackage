@@ -1,5 +1,12 @@
 {% from 'macros.jinja' import escape_double_quoted, python_string -%}
-"""{{ escape_double_quoted(((project_short_description | trim) ~ ".") | wordwrap(72, break_long_words=false, break_on_hyphens=false)) }}"""
+{%- set summary = escape_double_quoted(((project_short_description | trim) ~ ".") | wordwrap(72, break_long_words=false, break_on_hyphens=false)) -%}
+{%- if "\n" in summary -%}
+"""
+{{ summary }}
+"""
+{%- else -%}
+"""{{ summary }}"""
+{%- endif %}
 
 __author__ = {{ python_string(full_name) }}
 __email__ = {{ python_string(email) }}

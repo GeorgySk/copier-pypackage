@@ -246,8 +246,10 @@ def release_repo(
     tmp_path_factory: pytest.TempPathFactory, template_dir: Path
 ) -> tuple[Path, str]:
     """
-    A clone of this repository at its latest release, plus the current
-    template (working tree included) committed on top, untagged.
+    Clone this repository at its latest release, plus the current template.
+
+    The current template (working tree included) is committed on top of
+    the release, untagged.
     """
     release = latest_release()
     repo = tmp_path_factory.mktemp("release-repo") / "t"
