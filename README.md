@@ -170,7 +170,7 @@ same commands:
 
 | Job | What it does |
 | --- | --- |
-| `lint` | `ruff check`, `ruff format --check`, `mypy .` |
+| `lint` | `ruff check`, `mypy .` |
 | `test` | pytest with coverage on every Python from the minimum to 3.14; coverage goes to Codecov (GitHub) or GitLab's coverage report |
 | `build` | `poetry build` (sdist and wheel) |
 | `docs` | `sphinx-build -W` |
@@ -209,7 +209,7 @@ by hand.
   `--trust`, and nothing runs on your machine besides rendering files.
 - **Safe free-text answers.** Names and descriptions may contain quotes,
   backslashes or any Unicode; they are escaped so `pyproject.toml` and
-  `__init__.py` stay valid and Ruff-formatted.
+  `__init__.py` stay valid and pass Ruff.
 - **One source for each version.** The Python and Poetry versions live in
   `.env` (Docker, Compose, dev container), and the package's metadata in
   `pyproject.toml` (Sphinx reads it).

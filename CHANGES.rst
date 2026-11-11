@@ -8,6 +8,18 @@ and this project adheres to `Semantic Versioning <https://semver.org/>`_.
 Unreleased
 ----------
 
+0.29.0 (2026-11-11)
+------------------------------
+
+Removed
+~~~~~~~
+
+- ``ruff format``: the generated project's CI (GitHub and GitLab ``lint``
+  jobs) no longer runs ``ruff format --check``, its pre-commit config drops
+  the ``ruff-format`` hook, and its README no longer suggests
+  ``ruff format .``. Linting with ``ruff check`` is unchanged. The template
+  repository's own CI drops the formatting check as well.
+
 0.28.4 (2026-11-10)
 ------------------------------
 

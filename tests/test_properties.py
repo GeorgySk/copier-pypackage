@@ -52,18 +52,14 @@ def assert_ruff_clean(project: Path, path: Path) -> None:
     """``path`` passes the generated project's Ruff config, bar E501."""
     # E501 is left to tests/test_tooling.py: heavily escaped names can
     # exceed 79 columns, which a realistic prompt answer won't.
-    for command in (
-        ["check", "--ignore", "E501", str(path)],
-        ["format", "--check", "--diff", str(path)],
-    ):
-        result = subprocess.run(
-            [sys.executable, "-m", "ruff", *command],
-            cwd=project,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        assert result.returncode == 0, result.stdout + result.stderr
+    result = subprocess.run(
+        [sys.executable, "-m", "ruff", "check", "--ignore", "E501", str(path)],
+        cwd=project,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
 
 
 def module_strings(path: Path) -> tuple[str, dict[str, str]]:

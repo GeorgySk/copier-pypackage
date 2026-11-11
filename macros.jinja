@@ -13,10 +13,10 @@ string ("...") and a Python string literal ("..." or """..."""), as long as
 {{ value | string | replace('\\', '\\\\') | replace('"', '\\"') }}
 {%- endmacro -%}
 
-{#- Render ``value`` as a Python string literal, quotes included, with the
-quotes ``ruff format`` would pick: double quotes, unless the value has more
-double than single quotes. A generated project then passes
-``ruff format --check`` whatever the prompt answer was. -#}
+{#- Render ``value`` as a Python string literal, quotes included: double
+quotes, unless the value has more double than single quotes. A generated
+project then passes Ruff's quote rules (Q000, Q003) whatever the prompt
+answer was. -#}
 {%- macro python_string(value) -%}
 {%- set text = value | string | replace('\\', '\\\\') -%}
 {%- if text.count('"') > text.count("'") -%}

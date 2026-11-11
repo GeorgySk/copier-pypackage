@@ -96,7 +96,6 @@ def test_poetry_check(project: Project) -> None:
 
 def test_ruff(project: Project) -> None:
     project.poetry_run("ruff", "check", ".")
-    project.poetry_run("ruff", "format", "--check", ".")
 
 
 def test_mypy(project: Project) -> None:
