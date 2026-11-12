@@ -1,4 +1,4 @@
-{% from 'macros.jinja' import escape_double_quoted,
+{% from 'macros.jinja' import dependency_groups, escape_double_quoted,
     licenses_without_file_notices -%}
 [build-system]
 requires = ["poetry-core"]
@@ -17,21 +17,7 @@ requires-python = ">={{ python_version }},<4.0"
 dependencies = []
 
 [dependency-groups]
-docs = [
-    "Sphinx>=8.1.3,<9.0.0",
-    "sphinx-rtd-theme>=3.1.0,<4.0.0"
-]
-dev = [
-    "bump-my-version>=1.2.6,<2.0.0",
-    "pytest>=9.0.2,<10.0.0",
-    "pytest-cov>=7.0.0,<8.0.0",
-    # fixed for easier way to reproduce across various machines
-    "hypothesis==6.150.2",
-    # keep in sync with the ruff-pre-commit rev in .pre-commit-config.yaml
-    "ruff==0.17.4",
-    "mypy>=2.4.1,<3.0.0",
-    "pre-commit>=4.0.0,<5.0.0"
-]
+{{ dependency_groups() }}
 
 [tool.poetry.group.docs]
 optional = true

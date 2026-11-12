@@ -1,0 +1,36 @@
+# The generated project's dev and docs dependencies. They live here, in a
+# plain pyproject.toml, so that this repository's Dependabot can update them
+# (it can't read template/pyproject.toml.jinja). The template copies the
+# [dependency-groups] table below into the generated pyproject.toml, and
+# reads the Ruff pin for the generated .pre-commit-config.yaml (see the
+# dependency_groups and ruff_version macros in macros.jinja). Generated
+# projects get these updates through `copier update`, and their own
+# Dependabot leaves the groups alone.
+#
+# Keep [dependency-groups] the last table: everything after its header is
+# copied. This file is read as Jinja, so it must not contain Jinja syntax.
+
+[project]
+name = "copier-pypackage-template-dependencies"
+version = "0.0.0"
+# The oldest python_version choice in copier.yml, so that Dependabot only
+# picks versions every generated project can install.
+requires-python = ">=3.11,<4.0"
+dependencies = []
+
+[dependency-groups]
+docs = [
+    "Sphinx>=8.1.3,<9.0.0",
+    "sphinx-rtd-theme>=3.1.0,<4.0.0"
+]
+dev = [
+    "bump-my-version>=1.2.6,<2.0.0",
+    "pytest>=9.0.2,<10.0.0",
+    "pytest-cov>=7.0.0,<8.0.0",
+    # fixed for easier way to reproduce across various machines
+    "hypothesis==6.150.2",
+    # also the ruff-pre-commit rev in .pre-commit-config.yaml
+    "ruff==0.17.4",
+    "mypy>=2.4.1,<3.0.0",
+    "pre-commit>=4.0.0,<5.0.0"
+]
