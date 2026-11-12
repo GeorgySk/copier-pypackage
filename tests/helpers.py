@@ -15,8 +15,14 @@ REPO_ROOT = Path(
     os.environ.get("TEMPLATE_DIR", Path(__file__).resolve().parents[1])
 )
 # What Copier reads from the template repository: copier.yml at the root,
-# the imported macros and the rendered subdirectory.
-TEMPLATE_PATHS = ("copier.yml", "macros.jinja", "template")
+# the imported macros, the generated project's dependency groups they
+# include and the rendered subdirectory.
+TEMPLATE_PATHS = (
+    "copier.yml",
+    "macros.jinja",
+    "template-dependencies",
+    "template",
+)
 
 CI_PROVIDERS = ["github", "gitlab", "both", "none"]
 BOOLS = [True, False]
