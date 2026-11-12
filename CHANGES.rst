@@ -8,6 +8,13 @@ and this project adheres to `Semantic Versioning <https://semver.org/>`_.
 Unreleased
 ----------
 
+Changed
+~~~~~~~
+
+- The generated project's Ruff config ignores ``FBT001`` (boolean positional
+  argument) in ``tests/**``: pytest passes parametrized values positionally,
+  so boolean parameters can't be keyword-only.
+
 0.29.0 (2026-11-11)
 ------------------------------
 
