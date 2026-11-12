@@ -14,6 +14,9 @@ Changed
 - The generated project's Ruff config ignores ``FBT001`` (boolean positional
   argument) in ``tests/**``: pytest passes parametrized values positionally,
   so boolean parameters can't be keyword-only.
+- The generated project's Ruff config, and the template repository's own,
+  ignore ``RUF021`` (parenthesize chained ``and``/``or``): ``and`` binds
+  more tightly than ``or``, so the parentheses it asks for are redundant.
 
 0.29.0 (2026-11-11)
 ------------------------------
