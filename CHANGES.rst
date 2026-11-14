@@ -8,6 +8,23 @@ and this project adheres to `Semantic Versioning <https://semver.org/>`_.
 Unreleased
 ----------
 
+0.30.0 (2026-11-14)
+------------------------------
+
+Changed
+~~~~~~~
+
+- The generated project's Dependabot no longer opens pull requests for the
+  ``dev`` and ``docs`` dependency groups, only for the project's own
+  dependencies (``allow: dependency-type: production``). Those groups come
+  from the template, whose Dependabot updates them in one place
+  (``template-dependencies/pyproject.toml``); projects receive the bumps
+  through ``copier update``, for example the weekly template-update pull
+  request.
+- The generated ``.pre-commit-config.yaml`` takes its ruff-pre-commit
+  ``rev`` from the Ruff pin in the ``dev`` group, so a Ruff bump no longer
+  needs the ``rev`` updated by hand.
+
 0.29.1 (2026-11-12)
 ------------------------------
 

@@ -119,6 +119,56 @@ def test_dependabot_ecosystems(
     assert dependabot_ecosystems(project) == expected
 
 
+def test_dependabot_skips_template_dependencies(baked: Baked) -> None:
+    """
+    The project's Dependabot updates only its own dependencies.
+
+    The dev and docs groups come from template-dependencies/pyproject.toml,
+    which the template repository's Dependabot updates.
+    """
+    project = baked()
+    config = load_yaml(project / ".github" / "dependabot.yml")
+    (pip,) = [
+        update
+        for update in config["updates"]
+        if update["package-ecosystem"] == "pip"
+    ]
+
+    assert pip["allow"] == [{"dependency-type": "production"}]
+
+
+def test_root_dependabot_updates_template_dependencies() -> None:
+    config = load_yaml(REPO_ROOT / ".github" / "dependabot.yml")
+    (pip,) = [
+        update
+        for update in config["updates"]
+        if update["package-ecosystem"] == "pip"
+    ]
+
+    assert set(pip["directories"]) == {"/", "/template-dependencies"}
+
+
+def test_dependency_groups_come_from_template_dependencies(
+    baked: Baked,
+) -> None:
+    project = baked()
+    source = load_toml(REPO_ROOT / "template-dependencies" / "pyproject.toml")
+    generated = load_toml(project / "pyproject.toml")
+
+    assert generated["dependency-groups"] == source["dependency-groups"]
+    # Only the groups are copied: the table must stay last in the source.
+    assert list(source)[-1] == "dependency-groups"
+
+
+def test_template_dependencies_python_floor() -> None:
+    """Dependabot must only pick versions the oldest choice can install."""
+    source = load_toml(REPO_ROOT / "template-dependencies" / "pyproject.toml")
+
+    assert source["project"]["requires-python"] == (
+        f">={PYTHON_VERSIONS[0]},<4.0"
+    )
+
+
 @choices
 def test_ci_jobs(
     baked: Baked,

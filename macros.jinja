@@ -6,6 +6,22 @@ into a project. Macros instead of Jinja extensions: extensions are an unsafe
 Copier feature and would make every user pass ``--trust``.
 -#}
 
+{#- The generated project's dev and docs dependencies, from
+template-dependencies/pyproject.toml, where this repository's Dependabot
+updates them: the body of its [dependency-groups] table, which comes last
+in that file (the header that starts a line; ``trim`` drops a CR left by a
+CRLF checkout). -#}
+{%- macro dependency_groups() -%}
+{%- set text %}{% include 'template-dependencies/pyproject.toml' %}{% endset -%}
+{{ text.rsplit('\n[dependency-groups]', 1)[1] | trim }}
+{%- endmacro -%}
+
+{#- The Ruff version pinned in the dev group above, for the ruff-pre-commit
+rev. -#}
+{%- macro ruff_version() -%}
+{{ dependency_groups().split('"ruff==', 1)[1].split('"', 1)[0] }}
+{%- endmacro -%}
+
 {#- Escape ``value`` for use between double quotes: valid inside a TOML basic
 string ("...") and a Python string literal ("..." or """..."""), as long as
 ``value`` has no control characters (prompt answers are single lines). -#}

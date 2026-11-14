@@ -188,13 +188,20 @@ would fail. The generated README lists the one-time setup.
 ### Dependency updates
 
 Projects hosted on GitHub (`ci_provider` other than `gitlab`) get a weekly
-Dependabot configuration for the Python dependencies (minor and patch
-updates grouped into one pull request), the dev container features and
-the GitHub Actions used by the workflows. Some versions are outside
-Dependabot's reach and are updated by template releases instead: the Python
-and Poetry versions in `.env` and CI, and the Ruff `rev` in
-`.pre-commit-config.yaml`. After Dependabot bumps Ruff, update that `rev`
-by hand.
+Dependabot configuration for the project's own Python dependencies (minor
+and patch updates grouped into one pull request), the dev container
+features and the GitHub Actions used by the workflows.
+
+The `dev` and `docs` dependency groups are left out: every project shares
+them, so they are updated once, in this repository, instead of by a pull
+request per project. They live in
+[`template-dependencies/pyproject.toml`](template-dependencies/pyproject.toml),
+which this repository's Dependabot updates and the template copies into the
+generated `pyproject.toml` (and the Ruff pin into the pre-commit `rev`).
+Projects receive the bumps through `copier update`, for example the weekly
+template-update pull request. Other versions outside Dependabot's reach are
+updated by template releases too: the Python and Poetry versions in `.env`
+and CI.
 
 ### Design decisions
 

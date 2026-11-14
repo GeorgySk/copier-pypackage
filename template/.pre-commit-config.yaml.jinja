@@ -1,6 +1,7 @@
+{% from 'macros.jinja' import ruff_version -%}
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.17.4
+    rev: v{{ ruff_version() }}  # keep equal to the ruff pin in pyproject.toml
     hooks:
       - id: ruff-check
         args: [--fix]

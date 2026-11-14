@@ -1,8 +1,15 @@
 version: 2
 updates:
-  # Poetry: pyproject.toml + poetry.lock
+  # Poetry: pyproject.toml + poetry.lock, and the generated project's dev and
+  # docs dependencies in template-dependencies/pyproject.toml. One entry, so
+  # that a grouped update (Ruff, pinned in both) is a single pull request.
   - package-ecosystem: "pip"
-    directory: "/"
+    directories:
+      - "/"
+      - "/template-dependencies"
+    # Raise the lower bounds too, so new projects start from current
+    # versions.
+    versioning-strategy: increase
     schedule:
       interval: "weekly"
     groups:
