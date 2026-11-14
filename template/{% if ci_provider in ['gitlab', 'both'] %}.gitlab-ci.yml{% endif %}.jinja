@@ -1,3 +1,4 @@
+{%- from 'macros.jinja' import release_notes -%}
 {%- set py_minor = python_version.split(".")[1] | int -%}
 # Keep the jobs and commands in sync with .github/workflows/ci.yml (if present).
 stages: [lint, test, build, publish]
@@ -112,3 +113,19 @@ publish-docker:
       docker push "${CI_REGISTRY_IMAGE}:${version}"
       docker push "${CI_REGISTRY_IMAGE}:latest"
 {%- endif %}
+
+# A GitLab release for each final version, with the version's CHANGES.rst
+# section as release notes. Independent of the publish jobs: the tag is the
+# release, and a failed upload is re-run rather than abandoned.
+release:
+  extends: .release-rules
+  image: registry.gitlab.com/gitlab-org/cli:latest
+  stage: publish
+  dependencies: []
+  script:
+    - |
+      {{ release_notes("CI_COMMIT_TAG") | indent(6) }}
+  release:
+    tag_name: $CI_COMMIT_TAG
+    name: $CI_COMMIT_TAG
+    description: release-notes.md
