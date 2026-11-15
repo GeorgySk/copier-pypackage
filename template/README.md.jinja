@@ -124,19 +124,36 @@ Only the GitHub workflow publishes to PyPI, so the same version isn't uploaded
 twice.
 {%- endif %}
 Pre-release tags such as `vX.Y.Z-alpha` are not published.
-{% if use_devcontainer %}
+Alongside them, once the checks pass, the `release` job creates a
+{%- if on_gitlab %} GitLab release
+{%- elif ci_provider == "both" %} GitHub release and a GitLab release
+{%- else %} GitHub release{% endif %}
+for the tag, with the version's section of `CHANGES.rst` as its notes, so
+add the changelog entries before bumping. It doesn't wait for the publish
+jobs: if one fails, fix the cause and re-run that job (not the whole
+pipeline, since a version can be uploaded to PyPI only once).
+
+Release from the default branch once the changes are merged, so that what is
+published has been reviewed and tested.
+{%- if use_devcontainer %}
 `bump-my-version bump release` commits and tags the release, so push both:
 ```bash
 git push --follow-tags
 ```
 {%- else %}
-`bump-my-version` is configured not to commit or tag, so do it by hand:
+`bump-my-version` is configured not to commit or tag, so do it by hand
+(`--follow-tags` only pushes annotated tags, hence `-a`):
 ```bash
 git commit -am "Bump version to X.Y.Z"
-git tag vX.Y.Z
+git tag -a vX.Y.Z -m "Release X.Y.Z"
 git push --follow-tags
 ```
 {%- endif %}
+A plain `git push` doesn't push tags. To make it push the tags of the commits
+it pushes, run once
+```bash
+git config --global push.followTags true
+```
 
 One-time setup:
 {%- if ci_provider in ["github", "both"] %}

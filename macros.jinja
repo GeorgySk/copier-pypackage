@@ -69,3 +69,47 @@ which make Ruff take the comment for commented-out code (ERA001). -#}
 {{ trailer }}
 {%- endif -%}
 {%- endmacro -%}
+
+{#- Shell commands for the CI ``release`` jobs: check that the tag in the
+variable ``tag_variable`` matches the version in ``pyproject.toml``, then
+write that version's ``CHANGES.rst`` section to ``release-notes.md``. The
+section ends at the next ``-``-underlined heading (the previous version);
+its ``~``-underlined subsection headings become ``###`` headings, since a
+``~~~`` line opens a code block in Markdown. The rest of reStructuredText
+(bullets, ````code````) reads well enough as Markdown. POSIX ``sh`` and
+``awk`` only: GitLab runs it in an Alpine-based image. The template
+repository's own ``.github/workflows/release.yml`` carries a copy, which
+``test_release_notes_in_sync`` keeps identical. -#}
+{%- macro release_notes(tag_variable) -%}
+set -e
+version="{{ '${' ~ tag_variable ~ '#v}' }}"
+project_version="$(sed -n 's/^version = "\(.*\)"$/\1/p' pyproject.toml)"
+if [ "${version}" != "${project_version}" ]; then
+  echo "Tag v${version} does not match version ${project_version}" >&2
+  exit 1
+fi
+awk -v version="${version}" '
+  { line[NR] = $0 }
+  END {
+    for (i = 1; i < NR; i++) {
+      if (index(line[i], version " (") == 1 && line[i + 1] ~ /^-+$/) {
+        start = i + 2
+        break
+      }
+    }
+    if (!start) {
+      print "No section for " version " in CHANGES.rst" > "/dev/stderr"
+      exit 1
+    }
+    for (i = start; i <= NR; i++) {
+      if (line[i + 1] ~ /^-+$/) break
+      if (line[i + 1] ~ /^~+$/) {
+        print "### " line[i]
+        i++
+      } else print line[i]
+    }
+  }' CHANGES.rst > release-notes.md
+if ! grep -q '[^[:space:]]' release-notes.md; then
+  echo "No notable changes." > release-notes.md
+fi
+{%- endmacro -%}

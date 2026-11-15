@@ -8,6 +8,27 @@ and this project adheres to `Semantic Versioning <https://semver.org/>`_.
 Unreleased
 ----------
 
+Added
+~~~~~
+
+- The generated project's CI (GitHub and GitLab) has a ``release`` job that,
+  for a final ``vX.Y.Z`` tag, creates a GitHub or GitLab release with the
+  version's ``CHANGES.rst`` section as release notes. Like the publish jobs,
+  it runs once the checks pass, in parallel with them, and first checks that
+  the tag matches the version in ``pyproject.toml``.
+- The template repository creates a GitHub release for each final tag, with
+  the same notes (``.github/workflows/release.yml``).
+- The README files explain how to release: bump on the default branch once
+  the changes are merged, and push the tag (``git push --follow-tags``, or
+  ``push.followTags``).
+
+Fixed
+~~~~~
+
+- The generated README's release steps without a dev container create an
+  annotated tag (``git tag -a``): ``git push --follow-tags`` doesn't push the
+  lightweight tag that ``git tag vX.Y.Z`` made.
+
 0.30.0 (2026-11-14)
 ------------------------------
 

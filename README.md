@@ -30,6 +30,7 @@ document and release:
   [dev container](https://containers.dev/),
 - CI/CD on GitHub Actions and/or GitLab CI that checks every push and
   publishes releases to PyPI (and a Docker image to a container registry),
+  then creates a GitHub or GitLab release with the changelog as its notes,
 - Dependabot updates of dependencies.
 
 Projects generated from it can later pull in improvements to the template
@@ -176,10 +177,13 @@ same commands:
 | `docs` | `sphinx-build -W` |
 | `publish-pypi` | uploads the built package to PyPI |
 | `publish-docker` | pushes the `prod` image to GHCR or the GitLab registry (with `use_docker_compose`) |
+| `release` | creates a GitHub or GitLab release for the tag, with the version's `CHANGES.rst` section as its notes |
 
-The publish jobs run only for final release tags (`vX.Y.Z`, not
-`vX.Y.Z-alpha`), only after all checks pass, and first check that the tag
-matches the version in `pyproject.toml`. GitHub publishes to PyPI with
+The publish and release jobs run only for final release tags (`vX.Y.Z`,
+not `vX.Y.Z-alpha`), only after all checks pass, and first check that the
+tag matches the version in `pyproject.toml`. They run in parallel: the tag
+is the release, so a failed upload is fixed and re-run, and doesn't hold
+back the release notes. With `both`, each platform gets its own release. GitHub publishes to PyPI with
 [Trusted Publishing](https://docs.pypi.org/trusted-publishers/) (no stored
 token); GitLab uses a protected `PYPI_API_TOKEN` variable. With `both`,
 only GitHub publishes to PyPI, since a second upload of the same version
@@ -361,6 +365,9 @@ This will set version to `major.minor.patch-alpha`.
 
 #### Release
 
+Release from `main`, once the changes are merged, so that the release commit
+and its tag are on `main` exactly as reviewed and tested.
+
 Test bumping version
 ```bash
 bump-my-version bump --dry-run --verbose release
@@ -371,11 +378,27 @@ Bump version
 bump-my-version bump --verbose release
 ```
 
-This will set version to `major.minor.patch`, commit the change and tag it
-`vmajor.minor.patch`. Push the tag:
+This will set version to `major.minor.patch`, turn the `Unreleased` section
+of `CHANGES.rst` into a dated one, commit the change and tag it
+`vmajor.minor.patch`. Push the commit and the tag:
 ```bash
 git push --follow-tags
 ```
+
+A plain `git push` doesn't push tags. To make it push the (annotated) tags of
+the commits it pushes, as bump-my-version creates them, run once
+```bash
+git config --global push.followTags true
+```
+
+If `main` only accepts pull requests, bump on a branch, merge it with a merge
+commit (not a squash or rebase, which would leave the tagged commit off
+`main`) and push the tag after merging: `git push origin vX.Y.Z`.
+
+Pushing the tag runs the `Release` workflow
+(`.github/workflows/release.yml`), which creates a GitHub release with the
+version's `CHANGES.rst` section as its notes. Pre-release tags
+(`vX.Y.Z-alpha`) get no release.
 
 `copier copy` and `copier update` use the latest such tag, so a template
 change reaches users only once it is released.

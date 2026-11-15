@@ -181,7 +181,7 @@ def test_ci_jobs(
         use_docker_compose=use_docker_compose,
         use_devcontainer=use_devcontainer,
     )
-    common = {"lint", "test", "build", "docs"}
+    common = {"lint", "test", "build", "docs", "release"}
     docker = {"publish-docker"} if use_docker_compose else set()
 
     if ci_provider in ("github", "both"):
@@ -191,6 +191,123 @@ def test_ci_jobs(
         pypi = {"publish-pypi"} if ci_provider == "gitlab" else set()
         assert gitlab_jobs(project) == common | pypi | docker
 
+
+def github_release_notes_script(workflow: Path) -> str:
+    """Return the run script of the release notes step in ``workflow``."""
+    steps = load_yaml(workflow)["jobs"]["release"]["steps"]
+    [step] = [
+        step for step in steps if step.get("name", "").startswith("Write")
+    ]
+    script: str = step["run"]
+    return script
+
+
+def gitlab_release_notes_script(project: Path) -> str:
+    [script] = load_yaml(project / ".gitlab-ci.yml")["release"]["script"]
+    return str(script)
+
+
+def test_release_notes(baked: Baked, tmp_path: Path) -> None:
+    project = shutil.copytree(
+        baked(
+            ci_provider="both", use_devcontainer=False, version="1.2.0-alpha"
+        ),
+        tmp_path / "project",
+    )
+    changes = project / "CHANGES.rst"
+    changes.write_text(
+        changes.read_text().replace(
+            "Unreleased\n----------\n",
+            "Unreleased\n----------\n\n"
+            "Added\n~~~~~\n\n- A ``feature``.\n\n"
+            "Fixed\n~~~~~\n\n- A bug.\n\n"
+            "1.1.0 (2026-01-01)\n------------------\n\n"
+            "Added\n~~~~~\n\n- An older feature.\n",
+        )
+    )
+    git_commit_all(project)
+    result = run_isolated(
+        [sys.executable, "-m", "bumpversion", "bump", "release"], cwd=project
+    )
+    assert result.returncode == 0, result.stderr
+    scripts = {
+        "GITHUB_REF_NAME": github_release_notes_script(
+            project / ".github" / "workflows" / "ci.yml"
+        ),
+        "CI_COMMIT_TAG": gitlab_release_notes_script(project),
+    }
+
+    for variable, script in scripts.items():
+        notes = project / "release-notes.md"
+        notes.unlink(missing_ok=True)
+        result = run_isolated(
+            ["sh", "-c", script], cwd=project, extra_env={variable: "v1.2.0"}
+        )
+        assert result.returncode == 0, result.stderr
+        assert notes.read_text().strip() == (
+            "### Added\n\n- A ``feature``.\n\n### Fixed\n\n- A bug."
+        )
+
+        # The tag must match pyproject.toml, and the version needs a section.
+        result = run_isolated(
+            ["sh", "-c", script], cwd=project, extra_env={variable: "v1.1.0"}
+        )
+        assert result.returncode != 0
+        assert "does not match" in result.stderr
+        changes.write_text(changes.read_text().replace("1.2.0 (", "9.9.9 ("))
+        result = run_isolated(
+            ["sh", "-c", script], cwd=project, extra_env={variable: "v1.2.0"}
+        )
+        assert result.returncode != 0
+        assert "No section for 1.2.0" in result.stderr
+        changes.write_text(changes.read_text().replace("9.9.9 (", "1.2.0 ("))
+
+
+@ci_choices
+def test_release_runs_alongside_publish(
+    baked: Baked, ci_provider: str, use_docker_compose: bool
+) -> None:
+    """``release`` waits for the checks like the publish jobs, not for them."""
+    project = baked(
+        ci_provider=ci_provider, use_docker_compose=use_docker_compose
+    )
+
+    if ci_provider in ("github", "both"):
+        jobs = load_yaml(project / ".github" / "workflows" / "ci.yml")["jobs"]
+        assert jobs["release"]["needs"] == jobs["publish-pypi"]["needs"]
+        assert jobs["release"]["if"] == jobs["publish-pypi"]["if"]
+    if ci_provider in ("gitlab", "both"):
+        config = load_yaml(project / ".gitlab-ci.yml")
+        assert config["release"]["stage"] == "publish"
+        assert config["release"]["extends"] == ".release-rules"
+
+def test_release_notes_in_sync(baked: Baked) -> None:
+    """The template repository's release workflow uses the same script."""
+    project = baked(ci_provider="both")
+    generated = github_release_notes_script(
+        project / ".github" / "workflows" / "ci.yml"
+    )
+
+    assert generated == github_release_notes_script(
+        REPO_ROOT / ".github" / "workflows" / "release.yml"
+    )
+    assert generated == gitlab_release_notes_script(project).replace(
+        "CI_COMMIT_TAG", "GITHUB_REF_NAME"
+    )
+
+
+def test_root_workflows_lint() -> None:
+    if shutil.which("actionlint") is None:
+        pytest.skip("actionlint is not installed")
+    workflows = sorted((REPO_ROOT / ".github" / "workflows").glob("*.yml"))
+
+    result = subprocess.run(
+        ["actionlint", *map(str, workflows)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
 
 @choices
 def test_no_unrendered_jinja(

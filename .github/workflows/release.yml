@@ -1,0 +1,61 @@
+# Creates a GitHub release for each final template version (vX.Y.Z, not
+# vX.Y.Z-alpha) when its tag is pushed, with the version's CHANGES.rst section
+# as release notes. Copier itself only needs the tag.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    if: ${{ !contains(github.ref_name, '-') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # create the release
+    steps:
+      - uses: actions/checkout@v7
+      # A copy of the release_notes macro in macros.jinja, used by the
+      # generated project's CI (test_release_notes_in_sync).
+      - name: Write release notes from CHANGES.rst
+        run: |
+          set -e
+          version="${GITHUB_REF_NAME#v}"
+          project_version="$(sed -n 's/^version = "\(.*\)"$/\1/p' pyproject.toml)"
+          if [ "${version}" != "${project_version}" ]; then
+            echo "Tag v${version} does not match version ${project_version}" >&2
+            exit 1
+          fi
+          awk -v version="${version}" '
+            { line[NR] = $0 }
+            END {
+              for (i = 1; i < NR; i++) {
+                if (index(line[i], version " (") == 1 && line[i + 1] ~ /^-+$/) {
+                  start = i + 2
+                  break
+                }
+              }
+              if (!start) {
+                print "No section for " version " in CHANGES.rst" > "/dev/stderr"
+                exit 1
+              }
+              for (i = start; i <= NR; i++) {
+                if (line[i + 1] ~ /^-+$/) break
+                if (line[i + 1] ~ /^~+$/) {
+                  print "### " line[i]
+                  i++
+                } else print line[i]
+              }
+            }' CHANGES.rst > release-notes.md
+          if ! grep -q '[^[:space:]]' release-notes.md; then
+            echo "No notable changes." > release-notes.md
+          fi
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release create "${GITHUB_REF_NAME}" --verify-tag
+          --title "${GITHUB_REF_NAME}" --notes-file release-notes.md
