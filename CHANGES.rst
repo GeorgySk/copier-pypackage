@@ -16,6 +16,10 @@ Fixed
   files had the executable bit committed, and Copier copies file modes. Only
   ``.devcontainer/setup_user.sh`` stays executable. ``copier update`` clears
   the bit in existing projects.
+- The README's PowerShell command for generating a project with Docker runs
+  Copier as ``--user 1000:1000`` instead of root, whose files belong to root
+  inside a dev container. The README explains how to fix a project
+  generated as root.
 
 0.30.1 (2026-11-15)
 ------------------------------

@@ -322,12 +322,16 @@ GitLab-only projects don't get the workflow; update them with
 
    On Windows, the command above works in a WSL terminal but not in
    PowerShell, which has no `id` command and continues lines with a
-   backtick instead of `\`. In PowerShell, leave out `--user` and `HOME`.
-   Docker Desktop shows files on Windows drives as owned by you anyway:
+   backtick instead of `\`. In PowerShell, give the user as `1000:1000`
+   (the `vscode` user of the dev containers):
     ```powershell
-    docker compose run --rm copier-pypackage copier copy gh:GeorgySk/copier-pypackage my_project
+    docker compose run --rm --user 1000:1000 -e HOME=/tmp copier-pypackage copier copy gh:GeorgySk/copier-pypackage my_project
     mv my_project ..
     ```
+   Without `--user`, Copier runs as root. Windows still shows the files as
+   yours, but inside a dev container they belong to root. To fix a project
+   generated that way, run `sudo chown -R vscode:vscode .` in its dev
+   container.
 
 Development
 -----------
