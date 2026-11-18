@@ -576,6 +576,57 @@ def test_devcontainer_setup_script_exists(baked: Baked) -> None:
     assert (project / script.removeprefix(f"{workspace}/")).is_file()
 
 
+# Copier copies each template file's mode into the project, so a stray
+# executable bit (easily committed from a Windows checkout) spreads to users.
+EXECUTABLE_FILES = {".devcontainer/setup_user.sh"}
+
+
+def test_committed_executable_bits() -> None:
+    """Only scripts are executable in the git index that releases come from."""
+    result = subprocess.run(
+        ["git", "ls-files", "--stage", "-z"],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        pytest.skip("the template is not a git repository")
+    executable = {
+        entry.split("\t", 1)[1]
+        for entry in result.stdout.split("\0")
+        if entry.startswith("100755 ")
+    }
+    assert executable == {
+        ".devcontainer/setup_user.sh",
+        (
+            "template/{% if use_devcontainer %}.devcontainer{% endif %}"
+            "/setup_user.sh"
+        ),
+    }
+
+
+@choices
+def test_executable_bits(
+    baked: Baked,
+    ci_provider: str,
+    use_docker_compose: bool,
+    use_devcontainer: bool,
+) -> None:
+    project = baked(
+        ci_provider=ci_provider,
+        use_docker_compose=use_docker_compose,
+        use_devcontainer=use_devcontainer,
+    )
+
+    executable = {
+        path.relative_to(project).as_posix()
+        for path in project_files(project)
+        if path.stat().st_mode & 0o111
+    }
+    assert executable == (EXECUTABLE_FILES if use_devcontainer else set())
+
+
 def test_docs_automodule_targets_exist(baked: Baked) -> None:
     project = baked(project_name="Demo Lib")
     targets = [

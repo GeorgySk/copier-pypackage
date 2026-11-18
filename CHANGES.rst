@@ -8,6 +8,15 @@ and this project adheres to `Semantic Versioning <https://semver.org/>`_.
 Unreleased
 ----------
 
+Fixed
+~~~~~
+
+- Generated ``pyproject.toml``, ``README.md`` and
+  ``.devcontainer/devcontainer.json`` are no longer executable: the template
+  files had the executable bit committed, and Copier copies file modes. Only
+  ``.devcontainer/setup_user.sh`` stays executable. ``copier update`` clears
+  the bit in existing projects.
+
 0.30.1 (2026-11-15)
 ------------------------------
 
