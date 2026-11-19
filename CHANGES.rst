@@ -8,6 +8,13 @@ and this project adheres to `Semantic Versioning <https://semver.org/>`_.
 Unreleased
 ----------
 
+Added
+~~~~~
+
+- Copier is in the generated project's ``dev`` dependency group, so
+  ``poetry run copier update`` works without installing Copier separately.
+  The README's update instructions use it.
+
 0.30.2 (2026-11-19)
 ------------------------------
 

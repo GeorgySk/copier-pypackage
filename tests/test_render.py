@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from packaging.requirements import Requirement
 
 from helpers import (
     ANSWERS_FILE,
@@ -722,6 +723,28 @@ def test_copier_versions_in_sync(baked: Baked) -> None:
 
     assert pinned == locked
     assert version_tuple(pinned) >= version_tuple(minimum)
+
+
+def test_copier_in_dev_group(baked: Baked) -> None:
+    # The generated project installs Copier for `copier update`: a version
+    # that can render the template, admitting the one it's tested with.
+    project = baked()
+    dev = load_toml(project / "pyproject.toml")["dependency-groups"]["dev"]
+    (requirement,) = [
+        Requirement(dep) for dep in dev if Requirement(dep).name == "copier"
+    ]
+    lock = load_toml(REPO_ROOT / "poetry.lock")
+    (locked,) = (
+        package["version"]
+        for package in lock["package"]
+        if package["name"] == "copier"
+    )
+    minimum = load_yaml(REPO_ROOT / "copier.yml")["_min_copier_version"]
+
+    assert locked in requirement.specifier
+    assert {spec.operator: spec.version for spec in requirement.specifier}[
+        ">="
+    ] == minimum
 
 
 def version_tuple(version: str) -> tuple[int, ...]:
