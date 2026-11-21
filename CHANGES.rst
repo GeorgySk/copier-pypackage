@@ -8,6 +8,14 @@ and this project adheres to `Semantic Versioning <https://semver.org/>`_.
 Unreleased
 ----------
 
+Added
+~~~~~
+
+- The dev containers (generated and the template's own) install the Python
+  (``ms-python.python``) and Claude Code (``anthropic.claude-code``) VS Code
+  extensions, alongside Ruff, so they no longer have to be installed by hand
+  in every new project.
+
 0.30.5 (2026-11-21)
 ------------------------------
 

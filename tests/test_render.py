@@ -915,6 +915,30 @@ def test_poetry_versions_in_sync() -> None:
     assert not poetry_features(root)
 
 
+DEVCONTAINER_EXTENSIONS = {
+    "anthropic.claude-code",
+    "charliermarsh.ruff",
+    "ms-python.python",
+}
+
+
+@pytest.mark.parametrize("use_docker_compose", BOOLS)
+def test_devcontainer_extensions(
+    baked: Baked, use_docker_compose: bool
+) -> None:
+    # Both dev containers install the same VS Code extensions.
+    project = baked(
+        use_devcontainer=True, use_docker_compose=use_docker_compose
+    )
+    for path in (
+        project / ".devcontainer" / "devcontainer.json",
+        REPO_ROOT / ".devcontainer" / "devcontainer.json",
+    ):
+        config = load_json(path)
+        extensions = config["customizations"]["vscode"]["extensions"]
+        assert set(extensions) == DEVCONTAINER_EXTENSIONS
+
+
 def test_copier_versions_in_sync(baked: Baked) -> None:
     # The template-update workflow runs the Copier the template is tested
     # with (the root lock file), which must satisfy _min_copier_version.

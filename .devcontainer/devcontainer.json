@@ -8,5 +8,14 @@
   },
   "workspaceFolder": "/opt/copier-pypackage",
   "onCreateCommand": "bash /opt/copier-pypackage/.devcontainer/setup_user.sh",
-  "remoteUser": "vscode"
+  "remoteUser": "vscode",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "anthropic.claude-code",
+        "charliermarsh.ruff",
+        "ms-python.python"
+      ]
+    }
+  }
 }
