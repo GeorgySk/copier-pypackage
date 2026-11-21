@@ -113,3 +113,15 @@ if ! grep -q '[^[:space:]]' release-notes.md; then
   echo "No notable changes." > release-notes.md
 fi
 {%- endmacro -%}
+
+{#- The Python versions the CI tests run on, space-separated and oldest
+first: from the project's minimum ``python_version`` to the newest release.
+When a new Python is released, raise the 15 and add the version to the
+``python_version`` choices in copier.yml. Both CI files run all of them on
+release tags, the first and last on pull/merge requests, and the first (with
+coverage) on the default branch. -#}
+{%- macro test_pythons(python_version) -%}
+{%- for minor in range(python_version.split('.')[1] | int, 15) -%}
+3.{{ minor }}{{ ' ' if not loop.last else '' }}
+{%- endfor -%}
+{%- endmacro -%}

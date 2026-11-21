@@ -1,23 +1,49 @@
-{%- from 'macros.jinja' import release_notes -%}
-{%- set py_minor = python_version.split(".")[1] | int -%}
+{%- from 'macros.jinja' import release_notes, test_pythons -%}
+{%- set pythons = test_pythons(python_version).split() -%}
 # Keep the jobs and commands in sync with .github/workflows/ci.yml (if present).
+#
+# To save compute minutes, what runs depends on the pipeline:
+# - merge requests: every check, with the tests on the oldest and newest
+#   Python; no pipeline while the merge request is a draft (after marking it
+#   ready, start one with "Run pipeline" on its Pipelines tab).
+# - the default branch: only the tests on the oldest Python, for the coverage
+#   report and the README badges.
+# - final release tags (vX.Y.Z, not vX.Y.Z-alpha): every check with the tests
+#   on every Python, then the publish and release jobs.
 stages: [lint, test, build, publish]
 
 variables:
   PYTHON_VERSION: "{{ python_version }}"
   POETRY_VERSION: "{{ poetry_version }}"
 
-# Run for merge requests, the default branch and tags.
 workflow:
   rules:
+    - if: $CI_MERGE_REQUEST_DRAFT == "true"
+      when: never
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
+  # A new pipeline for the same merge request cancels this one, unless a job
+  # that isn't interruptible has started.
+  auto_cancel:
+    on_new_commit: interruptible
+
+default:
+  interruptible: true
+  timeout: 20 minutes
 
 # Final releases only: tags like v1.2.3, not v1.2.3-alpha.
 .release-rules:
+  interruptible: false
   rules:
     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
+
+# Merge requests and release tags, not the default branch.
+.check-rules:
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: never
+    - when: on_success
 
 .poetry:
   image: python:$PYTHON_VERSION
@@ -26,7 +52,7 @@ workflow:
     - poetry install --with dev
 
 lint:
-  extends: .poetry
+  extends: [.poetry, .check-rules]
   stage: lint
   script:
     - poetry run ruff check .
@@ -37,7 +63,19 @@ test:
   stage: test
   parallel:
     matrix:
-      - PYTHON_VERSION: [{% for minor in range(py_minor, 15) %}"3.{{ minor }}"{{ ", " if not loop.last else "" }}{% endfor %}]
+      - PYTHON_VERSION: {{ pythons | tojson }}
+  rules:
+    # Every Python on release tags, the oldest and newest on merge requests,
+    # the oldest on the default branch.
+    - if: $CI_COMMIT_TAG
+    - if: >-
+        $CI_PIPELINE_SOURCE == "merge_request_event"
+{%- if pythons | length > 1 %}
+        && ($PYTHON_VERSION == "{{ pythons[0] }}" || $PYTHON_VERSION == "{{ pythons[-1] }}")
+{%- else %}
+        && $PYTHON_VERSION == "{{ pythons[0] }}"
+{%- endif %}
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $PYTHON_VERSION == "{{ pythons[0] }}"
   script:
     - poetry run pytest --cov --cov-report=term --cov-report=xml --junitxml=report.xml
   coverage: '/^TOTAL.*\s+(\d+(?:\.\d+)?%)$/'
@@ -51,6 +89,7 @@ test:
 
 # In the test stage, so broken docs block publishing.
 docs:
+  extends: .check-rules
   image: python:$PYTHON_VERSION
   stage: test
   script:
@@ -59,6 +98,7 @@ docs:
     - poetry run sphinx-build -W --keep-going -b html docs/source docs/build/html
 
 build:
+  extends: .check-rules
   image: python:$PYTHON_VERSION
   stage: build
   script:
@@ -94,6 +134,7 @@ publish-docker:
   services:
     - docker:dind
   stage: publish
+  timeout: 30 minutes
   variables:
     DOCKER_TLS_CERTDIR: "/certs"
   dependencies: []

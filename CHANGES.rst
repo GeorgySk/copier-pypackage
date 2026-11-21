@@ -8,6 +8,40 @@ and this project adheres to `Semantic Versioning <https://semver.org/>`_.
 Unreleased
 ----------
 
+Added
+~~~~~
+
+- Generated GitHub workflows have a ``ci-passed`` job that passes only when
+  every check did: the one status check to require before merging. The
+  generated README explains how to set that up with a ruleset (paid plans
+  only for private repositories) or GitLab's "Pipelines must succeed".
+- Every job in the generated CI files has a timeout (at most 30 minutes),
+  so a hanging test no longer runs for GitHub's default 6 hours.
+
+Changed
+~~~~~~~
+
+- The generated CI runs much less often, to save CI minutes:
+
+  - Draft pull and merge requests run nothing. On GitHub, marking a pull
+    request ready for review starts CI, and a new push cancels the run for
+    the previous one. On GitLab, a pipeline for a merge request is started
+    by hand after marking it ready.
+  - Pull and merge requests run the tests on the oldest and newest
+    supported Python only. Final release tags still run them on every
+    supported Python before publishing.
+  - Pushes to ``main`` run only the tests on the oldest Python, which upload
+    coverage, instead of every check.
+  - Pre-release tags (``vX.Y.Z-alpha``) no longer start a pipeline.
+  - The checks other than ``lint`` wait for it on GitHub, so a lint failure
+    doesn't start the tests, docs and build.
+
+- The generated Dependabot configuration opens pull requests monthly
+  instead of weekly, and groups the dev container and GitHub Actions
+  updates into one pull request each.
+- The template repository's own CI skips draft pull requests, and its jobs
+  have timeouts.
+
 0.30.3 (2026-11-21)
 ------------------------------
 
