@@ -1,6 +1,7 @@
 """Render every combination of the choice prompts and inspect it."""
 
 import datetime as dt
+import json
 import re
 import shutil
 import subprocess
@@ -186,7 +187,11 @@ def test_ci_jobs(
     docker = {"publish-docker"} if use_docker_compose else set()
 
     if ci_provider in ("github", "both"):
-        assert github_jobs(project) == common | {"publish-pypi"} | docker
+        # ci-passed is the one check to require before merging (GitLab
+        # requires the whole pipeline instead).
+        assert github_jobs(project) == (
+            common | {"publish-pypi", "ci-passed"} | docker
+        )
     if ci_provider in ("gitlab", "both"):
         # With "both", only GitHub publishes to PyPI.
         pypi = {"publish-pypi"} if ci_provider == "gitlab" else set()
@@ -433,27 +438,232 @@ def test_actionlint(
 
 def test_python_version_choices() -> None:
     # Python 3.11 is the minimum (3.10 is end-of-life), and the choices end
-    # where the CI matrices end (range(..., 15) in both CI files).
+    # where the CI matrices end (range(..., 15) in the test_pythons macro).
     expected = [f"3.{minor}" for minor in range(11, 15)]
     assert expected == PYTHON_VERSIONS
 
 
+def github_test_pythons(project: Path) -> dict[str, list[str]]:
+    """
+    Return the GitHub test matrix's Python versions for each kind of run.
+
+    The matrix is an expression that picks a JSON list by event: release
+    tags, then pull requests, then pushes to main.
+    """
+    workflow = load_yaml(project / ".github" / "workflows" / "ci.yml")
+    expression = workflow["jobs"]["test"]["strategy"]["matrix"][
+        "python-version"
+    ]
+    lists = re.findall(r"'(\[[^']*\])'", expression)
+    kinds = ["tag", "pull_request", "main"]
+    return dict(zip(kinds, map(json.loads, lists), strict=True))
+
+
+def gitlab_test_pythons(project: Path) -> dict[str, list[str]]:
+    """
+    Return the GitLab test matrix's Python versions for each kind of run.
+
+    Evaluates the test job's ``rules`` (a tag, a merge request, the default
+    branch) for every ``PYTHON_VERSION`` in the matrix.
+    """
+    test = load_yaml(project / ".gitlab-ci.yml")["test"]
+    [matrix] = test["parallel"]["matrix"]
+    pipelines = {
+        "tag": "$CI_COMMIT_TAG",
+        "pull_request": '$CI_PIPELINE_SOURCE == "merge_request_event"',
+        "main": "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH",
+    }
+    return {
+        kind: [
+            version
+            for version in matrix["PYTHON_VERSION"]
+            if any(
+                rule["if"].startswith(condition)
+                and (
+                    "$PYTHON_VERSION" not in rule["if"]
+                    or f'$PYTHON_VERSION == "{version}"' in rule["if"]
+                )
+                for rule in test["rules"]
+            )
+        ]
+        for kind, condition in pipelines.items()
+    }
+
+
 @pytest.mark.parametrize("python_version", PYTHON_VERSIONS)
 def test_python_matrix(baked: Baked, python_version: str) -> None:
+    """
+    Check the Python versions the CI tests run on.
+
+    Every Python on release tags, the oldest and newest on pull requests, the
+    oldest (which uploads coverage) on the default branch.
+    """
     project = baked(ci_provider="both", python_version=python_version)
     assert (
         load_toml(project / "pyproject.toml")["project"]["requires-python"]
         == f">={python_version},<4.0"
     )
     minor = int(python_version.split(".")[1])
-    expected = [f"3.{m}" for m in range(minor, 15)]
+    every = [f"3.{m}" for m in range(minor, 15)]
+    expected = {
+        "tag": every,
+        "pull_request": list(dict.fromkeys([every[0], every[-1]])),
+        "main": [python_version],
+    }
 
-    github = load_yaml(project / ".github" / "workflows" / "ci.yml")
+    assert github_test_pythons(project) == expected
+    assert gitlab_test_pythons(project) == expected
+    workflow = load_yaml(project / ".github" / "workflows" / "ci.yml")
+    upload = [
+        step
+        for step in workflow["jobs"]["test"]["steps"]
+        if "codecov" in step.get("uses", "")
+    ]
+    assert [step["if"] for step in upload] == [
+        f"matrix.python-version == '{python_version}'"
+    ]
+
+
+def workflow_triggers(workflow: dict[Any, Any]) -> dict[str, Any]:
+    """Return the ``on`` table (PyYAML reads the key ``on`` as ``True``)."""
+    triggers: dict[str, Any] = workflow[True]
+    return triggers
+
+
+@pytest.mark.parametrize(
+    ("tag", "publishes"),
+    [
+        ("v1.2.3", True),
+        ("v10.20.30", True),
+        ("v1.2.3-alpha", False),
+        ("v1.2.3-beta", False),
+        ("vX.Y.Z", False),
+    ],
+)
+def test_ci_runs_on_final_tags_only(
+    baked: Baked, tag: str, publishes: bool
+) -> None:
+    """
+    Pre-release tags start no pipeline: they would only repeat the checks.
+
+    In GitHub's tag filter, ``[0-9]`` and ``+`` mean what they mean in a
+    regular expression, and ``.`` is literal.
+    """
+    project = baked(ci_provider="both")
+    workflow = load_yaml(project / ".github" / "workflows" / "ci.yml")
+    [pattern] = workflow_triggers(workflow)["push"]["tags"]
+    github_regex = pattern.replace(".", r"\.")
+    assert bool(re.fullmatch(github_regex, tag)) is publishes
+
     gitlab = load_yaml(project / ".gitlab-ci.yml")
-    github_matrix = github["jobs"]["test"]["strategy"]["matrix"]
-    gitlab_matrix = gitlab["test"]["parallel"]["matrix"][0]
-    assert github_matrix["python-version"] == expected
-    assert gitlab_matrix["PYTHON_VERSION"] == expected
+    [tag_rule] = [
+        rule["if"]
+        for rule in gitlab["workflow"]["rules"]
+        if rule["if"].startswith("$CI_COMMIT_TAG")
+    ]
+    gitlab_regex = tag_rule.split("=~", 1)[1].strip().strip("/")
+    assert bool(re.search(gitlab_regex, tag)) is publishes
+
+
+def test_ci_skips_drafts(baked: Baked) -> None:
+    project = baked(ci_provider="both")
+    workflow = load_yaml(project / ".github" / "workflows" / "ci.yml")
+    pull_request = workflow_triggers(workflow)["pull_request"]
+    assert "ready_for_review" in pull_request["types"]
+    jobs = workflow["jobs"]
+    for name in ("lint", "test", "ci-passed"):
+        assert "!github.event.pull_request.draft" in jobs[name]["if"], name
+    # The other checks run only after lint.
+    for name in ("test", "build", "docs"):
+        assert jobs[name]["needs"] == "lint", name
+    assert workflow["concurrency"]["cancel-in-progress"]
+
+    gitlab = load_yaml(project / ".gitlab-ci.yml")
+    assert gitlab["workflow"]["rules"][0] == {
+        "if": '$CI_MERGE_REQUEST_DRAFT == "true"',
+        "when": "never",
+    }
+
+
+@ci_choices
+def test_ci_checks_skip_main(
+    baked: Baked, ci_provider: str, use_docker_compose: bool
+) -> None:
+    """
+    Only the tests run on the default branch.
+
+    Its changes were checked in their pull request. Every check runs on
+    release tags.
+    """
+    project = baked(
+        ci_provider=ci_provider, use_docker_compose=use_docker_compose
+    )
+
+    if ci_provider in ("github", "both"):
+        jobs = load_yaml(project / ".github" / "workflows" / "ci.yml")["jobs"]
+        assert "github.ref_type == 'tag'" in jobs["lint"]["if"]
+        assert "github.event_name == 'pull_request'" in jobs["lint"]["if"]
+        assert set(jobs["ci-passed"]["needs"]) == {
+            "lint",
+            "test",
+            "build",
+            "docs",
+        }
+    if ci_provider in ("gitlab", "both"):
+        config = load_yaml(project / ".gitlab-ci.yml")
+        check_rules = config[".check-rules"]["rules"]
+        assert check_rules[0] == {
+            "if": "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH",
+            "when": "never",
+        }
+        for name in ("lint", "docs", "build"):
+            extends = config[name]["extends"]
+            assert ".check-rules" in (
+                extends if isinstance(extends, list) else [extends]
+            ), name
+
+
+@ci_choices
+def test_ci_jobs_time_out(
+    baked: Baked, ci_provider: str, use_docker_compose: bool
+) -> None:
+    """A hanging job stops long before the default 6 hours (GitHub)."""
+    project = baked(
+        ci_provider=ci_provider, use_docker_compose=use_docker_compose
+    )
+
+    if ci_provider in ("github", "both"):
+        jobs = load_yaml(project / ".github" / "workflows" / "ci.yml")["jobs"]
+        for name, job in jobs.items():
+            assert 0 < job.get("timeout-minutes", 0) <= 30, name  # noqa: PLR2004
+    if ci_provider in ("gitlab", "both"):
+        config = load_yaml(project / ".gitlab-ci.yml")
+        assert config["default"]["timeout"] == "20 minutes"
+        assert config["default"]["interruptible"] is True
+        assert config[".release-rules"]["interruptible"] is False
+
+
+@choices
+def test_dependabot_schedule(
+    baked: Baked,
+    ci_provider: str,
+    use_docker_compose: bool,
+    use_devcontainer: bool,
+) -> None:
+    """Monthly and grouped: every Dependabot pull request runs CI."""
+    if ci_provider == "gitlab":
+        pytest.skip("no .github/ for GitLab projects")
+    project = baked(
+        ci_provider=ci_provider,
+        use_docker_compose=use_docker_compose,
+        use_devcontainer=use_devcontainer,
+    )
+
+    config = load_yaml(project / ".github" / "dependabot.yml")
+    for update in config["updates"]:
+        ecosystem = update["package-ecosystem"]
+        assert update["schedule"]["interval"] == "monthly", ecosystem
+        assert update["groups"], ecosystem
 
 
 LICENSE_FIRST_LINES = {

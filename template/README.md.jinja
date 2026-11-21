@@ -111,6 +111,51 @@ bump-my-version bump --verbose release
 This will set version to `major.minor.patch`.
 {%- if ci_provider != "none" %}
 
+### Continuous integration
+
+To save CI minutes, the checks (linting, tests, docs and package build) don't
+run on every push:
+
+- Pull requests: every check, with the tests on the oldest and newest
+  supported Python. Draft pull requests run nothing, so open a pull request
+  as a draft while working on it and mark it ready for review to run CI.
+{%- if ci_provider in ["github", "both"] %}
+  On GitHub, a new push cancels the run for the previous one.
+{%- endif %}
+{%- if ci_provider in ["gitlab", "both"] %}
+  On GitLab (merge requests), marking a draft ready doesn't start a
+  pipeline: start one with "Run pipeline" on the merge request's Pipelines
+  tab.
+{%- endif %}
+- The default branch: only the tests on the oldest Python, for the coverage
+  report and the badges. The merged changes were checked in their pull
+  request.
+- Final release tags `vX.Y.Z`: every check, with the tests on every supported
+  Python, then publishing (see below). Pre-release tags `vX.Y.Z-alpha` run
+  nothing.
+
+Every job has a timeout, so a hanging test can't use up the minutes.
+{%- if ci_provider in ["github", "both"] %}
+Dependabot opens its pull requests monthly, one per ecosystem (major
+updates of Python dependencies apart).
+{%- endif %}
+
+Since a merge is followed by only some of the tests, don't merge a pull
+request unless its last commit passed CI.
+{%- if ci_provider in ["github", "both"] %}
+On GitHub, enforce this with a ruleset (Settings → Rules → Rulesets → New
+branch ruleset) that targets the default branch and has "Require status
+checks to pass" with the `ci-passed` check, the job that passes only when
+every other check did. Leave "Require branches to be up to date before
+merging" off: it reruns CI every time the default branch moves. Rulesets
+are available for public repositories on every plan, but for private ones
+only on paid plans (GitHub Pro, Team or Enterprise).
+{%- endif %}
+{%- if ci_provider in ["gitlab", "both"] %}
+On GitLab, enable "Pipelines must succeed" (Settings → Merge requests →
+Merge checks).
+{%- endif %}
+
 ### Publishing
 
 Pushing a final release tag `vX.Y.Z` runs the CI publish jobs, which upload
