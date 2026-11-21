@@ -78,7 +78,7 @@ def project(
     # pre-commit only runs inside a git repository.
     git_commit_all(path)
     env = {
-        # The dev container sets `virtualenvs.create false` globally; give
+        # The dev container sets POETRY_VIRTUALENVS_CREATE=false; give
         # the rendered project its own environment instead.
         "POETRY_VIRTUALENVS_CREATE": "true",
         "POETRY_VIRTUALENVS_IN_PROJECT": "true",

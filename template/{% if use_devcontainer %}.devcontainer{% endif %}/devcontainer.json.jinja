@@ -19,7 +19,10 @@
   "workspaceFolder": "/opt/{{ project_slug }}",
   "workspaceMount": "source=${localWorkspaceFolder},target=/opt/{{ project_slug }},type=bind,consistency=cached",
   "runArgs": ["--runtime=runc"],
-  "postCreateCommand": "poetry config virtualenvs.create false && poetry install --with dev --no-root",
+  "containerEnv": {
+    "POETRY_VIRTUALENVS_CREATE": "false"
+  },
+  "postCreateCommand": "poetry install --with dev --no-root",
 {%- endif %}
   "onCreateCommand": "bash /opt/{{ project_slug }}/.devcontainer/setup_user.sh",
   "remoteUser": "vscode",

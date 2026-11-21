@@ -6,8 +6,10 @@ ARG POETRY_VERSION
 
 WORKDIR /opt/copier-pypackage
 
-RUN pip install "poetry==${POETRY_VERSION}" && \
-    poetry config virtualenvs.create false
+# An environment variable, unlike `poetry config`, applies to every user,
+# including the dev container's non-root user.
+ENV POETRY_VIRTUALENVS_CREATE=false
+RUN pip install "poetry==${POETRY_VERSION}"
 
 COPY README.md LICENSE pyproject.toml poetry.lock ./
 COPY copier.yml macros.jinja ./

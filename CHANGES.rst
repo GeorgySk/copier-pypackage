@@ -8,6 +8,15 @@ and this project adheres to `Semantic Versioning <https://semver.org/>`_.
 Unreleased
 ----------
 
+Fixed
+~~~~~
+
+- Poetry no longer creates a virtual environment when run from a dev
+  container terminal. ``virtualenvs.create false`` was set with
+  ``poetry config`` as root, which the dev container's ``vscode`` user
+  doesn't read; the Dockerfiles (and the image-based dev container) now set
+  ``POETRY_VIRTUALENVS_CREATE=false`` for every user instead.
+
 0.30.4 (2026-11-21)
 ------------------------------
 
