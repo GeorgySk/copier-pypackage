@@ -1,0 +1,16 @@
+{% from 'macros.jinja' import cli_name, copyright_header -%}
+{{ copyright_header(open_source_license, full_name) }}"""Command-line interface."""
+
+import click
+
+from {{ project_slug }} import __version__
+
+
+@click.command()
+@click.version_option(
+    __version__, prog_name="{{ cli_name(project_slug) }}"
+)
+@click.argument("name", default="World")
+def main(name: str) -> None:
+    """Greet NAME (an example command: replace it with your own)."""
+    click.echo(f"Hello, {name}!")

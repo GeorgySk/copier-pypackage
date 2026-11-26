@@ -1,5 +1,5 @@
-{% from 'macros.jinja' import dependency_groups, escape_double_quoted,
-    licenses_without_file_notices -%}
+{% from 'macros.jinja' import cli_name, cli_requirement, dependency_groups,
+    escape_double_quoted, licenses_without_file_notices -%}
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
@@ -14,7 +14,14 @@ authors = [
 readme = "README.md"
 license-files = ["LICENSE"]
 requires-python = ">={{ python_version }},<4.0"
+{%- if use_cli %}
+dependencies = ["{{ cli_requirement() }}"]
+
+[project.scripts]
+{{ cli_name(project_slug) }} = "{{ project_slug }}.cli:main"
+{%- else %}
 dependencies = []
+{%- endif %}
 
 [dependency-groups]
 {{ dependency_groups() }}

@@ -1,6 +1,8 @@
 {%- set namespace = github_username -%}
 {%- set slug = project_slug -%}
 {%- set on_gitlab = ci_provider == "gitlab" -%}
+{%- from 'macros.jinja' import cli_name -%}
+{%- set command = cli_name(project_slug) -%}
 {%- set repo_url = ("https://gitlab.com/" if on_gitlab else "https://github.com/") ~ namespace ~ "/" ~ slug -%}
 {{ project_name }}
 ===
@@ -65,6 +67,26 @@ Usage
 -----
 
 ...
+{%- if use_cli %}
+
+### Command line
+
+Installing the package also installs the `{{ command }}` command, built with
+[Click](https://click.palletsprojects.com/)
+```bash
+{{ command }} --help
+```
+
+It can also be run as a module
+```bash
+python -m {{ project_slug }} --help
+```
+
+The command is defined in `{{ project_slug }}/cli.py` (the `main` function,
+registered under `[project.scripts]` in `pyproject.toml`) and tested in
+`tests/test_cli.py`. Both start with an example command to replace with your
+own.
+{%- endif %}
 
 Development
 -----------
@@ -293,8 +315,9 @@ Copier is in the `dev` dependency group, so there is nothing else to install
 dev container, plain `copier update --defaults` works too).
 Copier merges the template's changes into the project and keeps yours.
 Review them with `git diff`, resolve any conflict markers and commit.
-`CHANGES.rst` and `{{ project_slug }}/__init__.py` are never touched by
-updates, and `.copier-answers.yml` must not be edited by hand.
+`CHANGES.rst` and `{{ project_slug }}/__init__.py`
+{%- if use_cli %} (as well as `{{ project_slug }}/cli.py` and
+`tests/test_cli.py`){% endif %} are never touched by updates, and `.copier-answers.yml` must not be edited by hand.
 {%- if ci_provider in ['github', 'both'] %}
 
 The `Template update` workflow (`.github/workflows/template-update.yml`) does

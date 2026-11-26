@@ -42,6 +42,7 @@ choices = pytest.mark.parametrize(
         for use_devcontainer in BOOLS
     ],
 )
+cli_choices = pytest.mark.parametrize("use_cli", BOOLS)
 ci_choices = pytest.mark.parametrize(
     ("ci_provider", "use_docker_compose"),
     [
@@ -50,6 +51,9 @@ ci_choices = pytest.mark.parametrize(
         for use_docker_compose in BOOLS
     ],
 )
+
+# Rendered only with use_cli.
+CLI_FILES = ["{slug}/cli.py", "{slug}/__main__.py", "tests/test_cli.py"]
 
 # The generated project's GitHub Actions workflows.
 WORKFLOWS = ["ci.yml", "template-update.yml"]
@@ -67,16 +71,19 @@ def project_files(project: Path) -> list[Path]:
 
 
 @choices
+@cli_choices
 def test_files_match_choices(
     baked: Baked,
     ci_provider: str,
     use_docker_compose: bool,
     use_devcontainer: bool,
+    use_cli: bool,
 ) -> None:
     project = baked(
         ci_provider=ci_provider,
         use_docker_compose=use_docker_compose,
         use_devcontainer=use_devcontainer,
+        use_cli=use_cli,
     )
 
     assert (project / ".devcontainer").is_dir() == use_devcontainer
@@ -96,6 +103,8 @@ def test_files_match_choices(
         ci_provider in ("gitlab", "both")
     )
     assert (project / ".github").exists() == (ci_provider != "gitlab")
+    for name in CLI_FILES:
+        assert (project / name.format(slug=project.name)).is_file() == use_cli
 
 
 @choices
@@ -169,6 +178,29 @@ def test_template_dependencies_python_floor() -> None:
     assert source["project"]["requires-python"] == (
         f">={PYTHON_VERSIONS[0]},<4.0"
     )
+
+
+@cli_choices
+def test_cli(baked: Baked, use_cli: bool) -> None:
+    project = baked(project_name="Demo Lib", use_cli=use_cli)
+    config = load_toml(project / "pyproject.toml")["project"]
+    source = load_toml(REPO_ROOT / "template-dependencies" / "pyproject.toml")
+    readme = (project / "README.md").read_text()
+    api = (project / "docs" / "source" / "demo_lib.rst").read_text()
+
+    if use_cli:
+        # Click's requirement comes from where Dependabot updates it.
+        assert config["dependencies"] == source["project"]["dependencies"]
+        assert [Requirement(dep).name for dep in config["dependencies"]] == [
+            "click"
+        ]
+        assert config["scripts"] == {"demo-lib": "demo_lib.cli:main"}
+    else:
+        assert config["dependencies"] == []
+        assert "scripts" not in config
+    assert ("demo-lib --help" in readme) == use_cli
+    assert ("python -m demo_lib --help" in readme) == use_cli
+    assert (".. automodule:: demo_lib.cli" in api) == use_cli
 
 
 @choices
@@ -316,16 +348,19 @@ def test_root_workflows_lint() -> None:
     assert result.returncode == 0, result.stdout + result.stderr
 
 @choices
+@cli_choices
 def test_no_unrendered_jinja(
     baked: Baked,
     ci_provider: str,
     use_docker_compose: bool,
     use_devcontainer: bool,
+    use_cli: bool,
 ) -> None:
     project = baked(
         ci_provider=ci_provider,
         use_docker_compose=use_docker_compose,
         use_devcontainer=use_devcontainer,
+        use_cli=use_cli,
     )
 
     leftovers = {
@@ -337,16 +372,19 @@ def test_no_unrendered_jinja(
 
 
 @choices
+@cli_choices
 def test_config_files_parse(
     baked: Baked,
     ci_provider: str,
     use_docker_compose: bool,
     use_devcontainer: bool,
+    use_cli: bool,
 ) -> None:
     project = baked(
         ci_provider=ci_provider,
         use_docker_compose=use_docker_compose,
         use_devcontainer=use_devcontainer,
+        use_cli=use_cli,
     )
     loaders = {
         ".toml": load_toml,
@@ -683,7 +721,10 @@ def test_license_choices_are_covered() -> None:
 @pytest.mark.parametrize("license_", LICENSES)
 def test_license(baked: Baked, license_: str) -> None:
     full_name = "Jane Doe"
-    project = baked(open_source_license=license_, full_name=full_name)
+    # With the CLI, so that its files are checked too.
+    project = baked(
+        open_source_license=license_, full_name=full_name, use_cli=True
+    )
     # local date, like the template's `'%Y' | strftime`
     year = str(dt.date.today().year)  # noqa: DTZ011
 
@@ -839,7 +880,7 @@ def test_executable_bits(
 
 
 def test_docs_automodule_targets_exist(baked: Baked) -> None:
-    project = baked(project_name="Demo Lib")
+    project = baked(project_name="Demo Lib", use_cli=True)
     targets = [
         target
         for page in (project / "docs" / "source").glob("*.rst")
@@ -1061,17 +1102,20 @@ def test_devcontainer_remote_user(
 
 
 @choices
+@cli_choices
 def test_answers_file(
     baked: Baked,
     ci_provider: str,
     use_docker_compose: bool,
     use_devcontainer: bool,
+    use_cli: bool,
 ) -> None:
     # `copier update` re-renders the project from these answers.
     context = {
         "ci_provider": ci_provider,
         "use_docker_compose": use_docker_compose,
         "use_devcontainer": use_devcontainer,
+        "use_cli": use_cli,
     }
     project = baked(**context)
     answers = load_yaml(project / ANSWERS_FILE)

@@ -38,7 +38,13 @@ V1, V2 = "v1.0.0", "v2.0.0"
 V2_LINE = "# Added in template v2"
 # Files the user owns: `copier update` must leave them alone (copier.yml's
 # _skip_if_exists, with project_slug rendered).
-SKIPPED = ["CHANGES.rst", "{slug}/__init__.py", "tests/strategies/__init__.py"]
+CLI_SKIPPED = ["{slug}/cli.py", "tests/test_cli.py"]  # only with use_cli
+SKIPPED = [
+    "CHANGES.rst",
+    "{slug}/__init__.py",
+    "tests/strategies/__init__.py",
+    *CLI_SKIPPED,
+]
 CONFLICT_MARKERS = ("<<<<<<<", ">>>>>>>")
 # A final release tag (pre-releases such as v1.2.0-alpha don't count).
 RELEASE_TAG = re.compile(r"v\d+\.\d+\.\d+")
@@ -205,6 +211,7 @@ def test_untouched_project_updates_to_fresh_render(
         {"ci_provider": "gitlab"},
         {"ci_provider": "none"},
         {"ci_provider": "both"},
+        {"use_cli": True},
     ],
 )
 def test_changed_answers_add_and_remove_files(
@@ -215,6 +222,25 @@ def test_changed_answers_add_and_remove_files(
     update(project, changed)
     fresh = copy(template_repo, tmp_path / "fresh", V2, **changed)
     assert_matches_fresh_render(project, fresh)
+
+
+@pytest.mark.parametrize("changed", [{}, {"use_cli": False}])
+def test_cli_project_updates(
+    template_repo: Path, tmp_path: Path, changed: dict[str, object]
+) -> None:
+    """A project with the CLI updates, and drops it when asked to."""
+    project = copy(template_repo, tmp_path / "updated", V1, use_cli=True)
+    git_commit_all(project)
+    update(project, changed)
+    answers = {"use_cli": True} | changed
+    fresh = copy(template_repo, tmp_path / "fresh", V2, **answers)
+
+    assert_matches_fresh_render(project, fresh)
+    # The user-owned CLI files, which the comparison leaves out.
+    slug = load_yaml(fresh / ANSWERS_FILE)["project_slug"]
+    for name in CLI_SKIPPED:
+        path = project / name.format(slug=slug)
+        assert path.is_file() == answers["use_cli"], name
 
 
 def latest_release() -> str:
