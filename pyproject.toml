@@ -20,12 +20,12 @@ dependencies = [
 bump-my-version = "^1.8.1"
 pytest = "^9.2.0"
 # fixed for easier way to reproduce across various machines
-hypothesis = "^6.168.5"
+hypothesis = "^6.170.17"
 check-jsonschema = "^0.39.0"
 actionlint-py = "^1.7.12.25"
-pyyaml = "^6.0.3"
+pyyaml = "^6.0.4"
 # keep in sync with the ruff pin in template-dependencies/pyproject.toml
-ruff = "0.17.4"
+ruff = "0.17.6"
 mypy = "^2.4.1"
 types-pyyaml = "^6.0.12"
 
