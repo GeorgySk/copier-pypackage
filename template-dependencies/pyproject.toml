@@ -1,9 +1,11 @@
-# The generated project's dev and docs dependencies. They live here, in a
+# The generated project's dev and docs dependencies, and Click for projects
+# with a command-line interface (use_cli). They live here, in a
 # plain pyproject.toml, so that this repository's Dependabot can update them
 # (it can't read template/pyproject.toml.jinja). The template copies the
 # [dependency-groups] table below into the generated pyproject.toml, and
-# reads the Ruff pin for the generated .pre-commit-config.yaml (see the
-# dependency_groups and ruff_version macros in macros.jinja). Generated
+# reads the Ruff pin for the generated .pre-commit-config.yaml and the Click
+# requirement for its [project] dependencies (see the dependency_groups,
+# ruff_version and cli_requirement macros in macros.jinja). Generated
 # projects get these updates through `copier update`, and their own
 # Dependabot leaves the groups alone.
 #
@@ -16,7 +18,10 @@ version = "0.0.0"
 # The oldest python_version choice in copier.yml, so that Dependabot only
 # picks versions every generated project can install.
 requires-python = ">=3.11,<4.0"
-dependencies = []
+dependencies = [
+    # a runtime dependency of generated projects with use_cli
+    "click>=8.5.1,<9.0.0"
+]
 
 [dependency-groups]
 docs = [

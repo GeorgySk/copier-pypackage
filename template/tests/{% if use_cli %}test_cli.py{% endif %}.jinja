@@ -1,0 +1,38 @@
+{% from 'macros.jinja' import cli_name, copyright_header -%}
+{{ copyright_header(open_source_license, full_name) }}import runpy
+import sys
+
+import pytest
+from click.testing import CliRunner
+
+from {{ project_slug }} import __version__
+from {{ project_slug }}.cli import main
+
+PACKAGE = "{{ project_slug }}"
+COMMAND = "{{ cli_name(project_slug) }}"
+
+
+def test_greets() -> None:
+    result = CliRunner().invoke(main, ["Alice"])
+
+    assert result.exit_code == 0
+    assert result.output == "Hello, Alice!\n"
+
+
+def test_version() -> None:
+    result = CliRunner().invoke(main, ["--version"])
+
+    assert result.exit_code == 0
+    assert result.output == f"{COMMAND}, version {__version__}\n"
+
+
+def test_runs_as_module(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr(sys, "argv", [PACKAGE, "--version"])
+
+    with pytest.raises(SystemExit) as exit_info:
+        runpy.run_module(PACKAGE, run_name="__main__")
+
+    assert exit_info.value.code == 0
+    assert capsys.readouterr().out == f"{COMMAND}, version {__version__}\n"

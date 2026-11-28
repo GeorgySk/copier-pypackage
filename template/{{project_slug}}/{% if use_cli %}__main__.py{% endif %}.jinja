@@ -1,0 +1,6 @@
+{% from 'macros.jinja' import copyright_header -%}
+{{ copyright_header(open_source_license, full_name) }}"""Run the command-line interface with ``python -m``."""
+
+from {{ project_slug }}.cli import main
+
+main()

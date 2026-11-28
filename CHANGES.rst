@@ -8,6 +8,18 @@ and this project adheres to `Semantic Versioning <https://semver.org/>`_.
 Unreleased
 ----------
 
+Added
+~~~~~
+
+- A new ``use_cli`` question (off by default) adds a command-line interface
+  built with `Click <https://click.palletsprojects.com/>`_: Click as a
+  dependency, a console command named after the package (with hyphens for
+  underscores) defined in ``<package>/cli.py``, ``python -m <package>``
+  support, tests in ``tests/test_cli.py``, and README and API docs sections.
+  ``cli.py`` and ``test_cli.py`` hold an example command to replace, so
+  ``copier update`` leaves them alone. Existing projects can add the CLI with
+  ``copier update --defaults --data use_cli=true``.
+
 0.30.6 (2026-11-26)
 ------------------------------
 

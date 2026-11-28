@@ -11,6 +11,9 @@ _skip_if_exists:
   - CHANGES.rst
   - "{{ project_slug }}/__init__.py"
   - tests/strategies/__init__.py
+  # Only rendered with use_cli: example code to replace with your own.
+  - "{{ project_slug }}/cli.py"
+  - tests/test_cli.py
 _message_after_copy: |
   Created {{ project_name }} in {{ _copier_conf.dst_path }}.
 
@@ -93,6 +96,13 @@ python_version:
   help: Minimum supported Python version
   choices: ["3.11", "3.12", "3.13", "3.14"]
   default: "3.11"
+
+# Off by default, so projects generated before this question existed keep
+# their files when they update.
+use_cli:
+  type: bool
+  help: Add a command-line interface (built with Click)?
+  default: false
 
 use_devcontainer:
   type: bool
