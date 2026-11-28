@@ -26,6 +26,7 @@ from helpers import (
     BOOLS,
     CI_PROVIDERS,
     DROPPED_ENV_PREFIXES,
+    GIT_ENV,
     REPO_ROOT,
     TEMPLATE_PATHS,
     git_commit_all,
@@ -71,11 +72,8 @@ def isolated_git(monkeypatch: pytest.MonkeyPatch) -> None:
     for key in os.environ:
         if key.startswith(DROPPED_ENV_PREFIXES):
             monkeypatch.delenv(key)
-    monkeypatch.setenv("GIT_CONFIG_GLOBAL", os.devnull)
-    monkeypatch.setenv("GIT_CONFIG_NOSYSTEM", "1")
-    for role in ("AUTHOR", "COMMITTER"):
-        monkeypatch.setenv(f"GIT_{role}_NAME", "test")
-        monkeypatch.setenv(f"GIT_{role}_EMAIL", "test@example.com")
+    for key, value in GIT_ENV.items():
+        monkeypatch.setenv(key, value)
 
 
 @pytest.fixture(scope="session")

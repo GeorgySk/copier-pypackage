@@ -128,6 +128,23 @@ def dependabot_ecosystems(project: Path) -> set[str]:
 #   project into the environment running the tests;
 # - PYTHONPATH could shadow the rendered project's own modules.
 DROPPED_ENV_PREFIXES = ("GIT_", "VIRTUAL_ENV", "POETRY_ACTIVE", "PYTHONPATH")
+# Ignore the user's git config (which could sign commits or run hooks), use
+# a fixed identity, and turn off automatic gc/maintenance: `git commit`
+# starts it in the background, and a commit-graph it writes mid-clone makes
+# a local `git clone` (Copier's) fail with "hardlink different from source".
+GIT_ENV = {
+    "GIT_CONFIG_GLOBAL": os.devnull,
+    "GIT_CONFIG_NOSYSTEM": "1",
+    "GIT_CONFIG_COUNT": "2",
+    "GIT_CONFIG_KEY_0": "gc.auto",
+    "GIT_CONFIG_VALUE_0": "0",
+    "GIT_CONFIG_KEY_1": "maintenance.auto",
+    "GIT_CONFIG_VALUE_1": "false",
+    "GIT_AUTHOR_NAME": "test",
+    "GIT_AUTHOR_EMAIL": "test@example.com",
+    "GIT_COMMITTER_NAME": "test",
+    "GIT_COMMITTER_EMAIL": "test@example.com",
+}
 
 
 def run_isolated(
@@ -147,14 +164,7 @@ def run_isolated(
         for key, value in os.environ.items()
         if not key.startswith(DROPPED_ENV_PREFIXES)
     }
-    env |= {
-        "GIT_CONFIG_GLOBAL": os.devnull,
-        "GIT_CONFIG_NOSYSTEM": "1",
-        "GIT_AUTHOR_NAME": "test",
-        "GIT_AUTHOR_EMAIL": "test@example.com",
-        "GIT_COMMITTER_NAME": "test",
-        "GIT_COMMITTER_EMAIL": "test@example.com",
-    } | (extra_env or {})
+    env |= GIT_ENV | (extra_env or {})
     return subprocess.run(
         command,
         cwd=cwd,
